@@ -77,11 +77,24 @@ WSGI_APPLICATION = 'EcommerceProject.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Blyss',  # Nombre de tu base de datos
+        'USER': 'root',  # Usuario de la base de datos
+        'PASSWORD': '',  # Contraseña del usuario
+        'HOST': 'localhost',  # Dirección del host, usualmente 'localhost'
+        'PORT': '3306',  # Puerto por defecto de MySQL
+        'OPTIONS': {
+            'charset': 'utf8mb4',  # Charset recomendado para soportar emojis y caracteres especiales
+        },
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -118,6 +131,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Directorio donde Django buscará los archivos estáticos de la app
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Cambia 'static' si usas otro nombre
+]
+
+# Directorio para recolectar los archivos estáticos al usar `collectstatic`
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
