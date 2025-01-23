@@ -1,0 +1,44 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load static %}
+{% block title %}Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Panel de Administración</h1>
+    <div class="row">
+        <!-- Card: Gestión de Inventario -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <i class="bi bi-box-seam fs-1 text-primary"></i>
+                    <h5 class="card-title mt-3">Gestión de Inventario</h5>
+                    <p class="card-text">Administra el inventario de productos y recursos.</p>
+                    <a href="{% url 'inventario' %}" class="btn btn-primary">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card: Gestión de Usuarios -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <i class="bi bi-people fs-1 text-success"></i>
+                    <h5 class="card-title mt-3">Gestión de Usuarios</h5>
+                    <p class="card-text">Administra los usuarios registrados y sus roles.</p>
+                    <a href="#" class="btn btn-success">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card: Reportes y Analíticas -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <i class="bi bi-graph-up fs-1 text-danger"></i>
+                    <h5 class="card-title mt-3">Reportes y Analíticas</h5>
+                    <p class="card-text">Genera reportes detallados y analiza métricas clave.</p>
+                    <a href="#" class="btn btn-danger">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

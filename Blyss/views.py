@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from django.contrib import messages
 
+@login_required
 def index(request):
     return render(request, 'Blyss/index.html', {'mensaje': '¡Bienvenido a Blyss!'})
 
@@ -111,8 +112,15 @@ def login_view(request):
 
     return render(request, 'Blyss/login.html')
 
-
 @login_required
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+@login_required
+def admin_view(request):
+    return render(request, 'Blyss/Admin/index.html')
+
+@login_required
+def inventario_view(request):
+    return render(request, 'Blyss/Admin/Inventario/index.html')
