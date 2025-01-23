@@ -1,0 +1,78 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% block title %}Registro{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Registro de Usuario</h2>
+    <div class="form-container p-4 border rounded shadow-sm bg-light">
+        <!-- Indicador de Progreso -->
+        <div class="progress mb-4" style="height: 20px;">
+            <div
+                id="progress-bar"
+                class="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style="width: 25%;"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+            >
+                Paso 1 de 4
+            </div>
+        </div>
+
+        <form id="registroForm" method="POST">
+            {% csrf_token %}
+
+            <!-- Paso 1: Nombre y Apellidos -->
+            <div class="step" id="step-1">
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" required>
+                    <div class="invalid-feedback">Por favor ingresa tu nombre.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="apellidos" class="form-label">Apellidos</label>
+                    <input type="text" id="apellidos" name="apellidos" class="form-control" required>
+                    <div class="invalid-feedback">Por favor ingresa tus apellidos.</div>
+                </div>
+                <button type="button" id="next-to-step-2" class="btn btn-primary">Continuar</button>
+            </div>
+
+            <!-- Paso 2: Fecha de Nacimiento -->
+            <div class="step" id="step-2" style="display: none;">
+                <div class="mb-3">
+                    <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="form-control" required>
+                    <div class="invalid-feedback">Por favor selecciona tu fecha de nacimiento.</div>
+                </div>
+                <button type="button" id="back-to-step-1" class="btn btn-secondary">Retroceder</button>
+                <button type="button" id="next-to-step-3" class="btn btn-primary">Continuar</button>
+            </div>
+
+            <!-- Paso 3: Correo Electrónico -->
+            <div class="step" id="step-3" style="display: none;">
+                <div class="mb-3">
+                    <label for="correo" class="form-label">Correo Electrónico</label>
+                    <input type="email" id="correo" name="correo" class="form-control" required>
+                    <div class="invalid-feedback">Por favor ingresa un correo electrónico válido.</div>
+                </div>
+                <button type="button" id="back-to-step-2" class="btn btn-secondary">Retroceder</button>
+                <button type="button" id="next-to-step-4" class="btn btn-primary">Continuar</button>
+            </div>
+
+            <!-- Paso 4: Contraseña -->
+            <div class="step" id="step-4" style="display: none;">
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" id="password" name="password" class="form-control" required minlength="6">
+                    <div class="invalid-feedback">La contraseña debe tener al menos 6 caracteres.</div>
+                </div>
+                <button type="button" id="back-to-step-3" class="btn btn-secondary">Retroceder</button>
+                <button type="submit" class="btn btn-primary">Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="{% static 'js/registro.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,60 @@
+.navbar {
+    background-color: #4F78F3;
+}
+.navbar .navbar-brand {
+    font-weight: bold;
+    color: #ffffff;
+}
+.navbar .form-control {
+    border-radius: 20px;
+}
+.navbar .btn {
+    border-radius: 20px;
+}
+.navbar .location {
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+.navbar .nav-link {
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+.navbar .nav-link:hover {
+    text-decoration: underline;
+}
+.navbar .btn {
+border-radius: 20px;
+background-color: #ffffff; /* Color de fondo blanco */
+color: #4F78F3; /* Color del texto azul (opcional, acorde al diseño) */
+border: 1px solid #4F78F3; /* Borde azul */
+}
+.navbar .btn:hover {
+    background-color: #4F78F3; /* Color de fondo al pasar el mouse */
+    color: #ffffff; /* Texto blanco al pasar el mouse */
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #0d6efd; /* Color predeterminado */
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Hace que sea circular */
+    text-transform: uppercase;
+}
+/* Estilo para que el menú de usuario no empuje la navbar */
+.navbar .dropdown-menu {
+    position: absolute;
+    top: 100%; /* Alineado con la parte inferior del botón del dropdown */
+    left: auto; /* Asegura la alineación por defecto */
+    right: 0; /* Alineación a la derecha */
+    z-index: 1050; /* Asegura que esté por encima de otros elementos */
+    transform: translateY(-10px); /* Da un pequeño efecto flotante */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para resaltar el menú */
+    border-radius: 5px; /* Opcional: Redondea los bordes */
+    background-color: #fff; /* Fondo blanco */
+}

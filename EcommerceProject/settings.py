@@ -71,6 +71,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'EcommerceProject.wsgi.application'
 
+AUTH_USER_MODEL = 'Blyss.Usuarios'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

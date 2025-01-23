@@ -1,0 +1,26 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-primary">Inicia tus compras ahora</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form id="loginForm" method="POST" class="shadow p-4 rounded" style="background-color: #f9f9f9;">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="correo" class="form-label">Correo Electrónico</label>
+                    <input type="email" id="correo" name="correo" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}
