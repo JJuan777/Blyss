@@ -1,0 +1,41 @@
+{% extends 'Blyss/Admin/Inventario/index.html' %}
+{% load static %}
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h2">Gestión de Productos</h2>
+        <a href="{% url 'add_productos' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Añadir Producto
+        </a>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="table-responsive" id="productos-table-container">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th data-order-by="Nombre" class="sortable">Nombre <span class="sort-icon">↑</span></th>
+                    <th data-order-by="SKU" class="sortable">SKU <span class="sort-icon">↑</span></th>
+                    <th data-order-by="Stock" class="sortable">Stock <span class="sort-icon">↑</span></th>
+                    <th data-order-by="Precio" class="sortable">Precio <span class="sort-icon">↑</span></th>
+                    <th>Marca</th>
+                    <th data-order-by="Estado" class="sortable text-center">Estado <span class="sort-icon">↑</span></th>
+                    <th class="text-center">Detalles</th>
+                </tr>
+            </thead>
+            <tbody id="productos-table-body">
+                <!-- Los productos se cargarán aquí mediante AJAX -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Controles de paginación -->
+    <div id="pagination-controls" class="d-flex justify-content-between align-items-center mt-3">
+        <button id="prev-page" class="btn btn-outline-primary" disabled>&laquo; Anterior</button>
+        <span id="pagination-info" class="text-muted"></span>
+        <button id="next-page" class="btn btn-outline-primary" disabled>Siguiente &raquo;</button>
+    </div>
+</div>
+<script src="{% static 'js/Admin/Inventario/Productos/Productos.js' %}"></script>
+{% endblock %}

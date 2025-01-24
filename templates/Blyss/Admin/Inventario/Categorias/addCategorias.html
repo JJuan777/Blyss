@@ -1,0 +1,57 @@
+{% extends 'Blyss/Admin/Inventario/index.html' %}
+{% load static %}
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h2">Crear Nueva Categoría</h2>
+        <a href="{% url 'categorias' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Formulario para nueva categoría -->
+    <form id="add-categoria-form" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                <input 
+                    type="text" 
+                    name="nombre" 
+                    id="nombre" 
+                    class="form-control" 
+                    placeholder="Ingresa el nombre de la categoría" 
+                    maxlength="100" 
+                    required>
+                <div class="invalid-feedback">El nombre es obligatorio y no debe exceder los 100 caracteres.</div>
+            </div>
+            <div class="col-md-12">
+                <label for="descripcion" class="form-label">Descripción </label>
+                <textarea 
+                    name="descripcion" 
+                    id="descripcion" 
+                    class="form-control" 
+                    rows="4" 
+                    maxlength="200" 
+                    placeholder="Describe brevemente la categoría"></textarea>
+                <div class="invalid-feedback">La descripción no debe exceder los 200 caracteres.</div>
+            </div>
+            <div class="col-md-6">
+                <label for="estado" class="form-label">Estado <span class="text-danger">*</span></label>
+                <select name="estado" id="estado" class="form-select" required>
+                    <option value="" disabled selected>Seleccione un estado</option>
+                    <option value="True">Activo</option>
+                    <option value="False">Inactivo</option>
+                </select>
+                <div class="invalid-feedback">Debes seleccionar un estado.</div>
+            </div>            
+        </div>
+        <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Guardar Categoría
+            </button>
+        </div>
+    </form>    
+</div>
+<script src="{% static 'js/Admin/Inventario/Categorias/addCategoria.js' %}"></script>
+{% endblock %}

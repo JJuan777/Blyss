@@ -55,3 +55,41 @@ class Usuarios(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return self.is_superuser
+
+class Categorias(models.Model):
+    IdCategoria = models.AutoField(primary_key=True)
+    Nombre = models.CharField(max_length=100)
+    Descripcion = models.CharField(max_length=200)
+    Estado = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.Nombre
+    
+class Subcategorias(models.Model):
+    IdSubCategoria = models.AutoField(primary_key=True)
+    Nombre = models.CharField(max_length=100)
+    Descripcion = models.CharField(max_length=200)
+    Estado = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.Nombre
+    
+class Productos(models.Model):
+    IdProducto = models.AutoField(primary_key=True)
+    Nombre = models.CharField(max_length=150)
+    SKU = models.CharField(max_length=50)
+    Precio = models.DecimalField(max_digits=10, decimal_places=2)
+    PrecioDescuento = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    Stock = models.IntegerField()
+    StockMax = models.IntegerField()
+    StockMin = models.IntegerField()
+    CalificacionPromedio = models.IntegerField(default=0)
+    Vistas = models.IntegerField(default=0)
+    Estado = models.BooleanField(default=True)
+    FechaAgregado = models.DateTimeField(auto_now_add=True)
+    Marca = models.CharField(max_length=100)
+    Peso = models.DecimalField(max_digits=10, decimal_places=2)
+    Descripcion = models.TextField()
+
+    def __str__(self):
+        return self.Nombre

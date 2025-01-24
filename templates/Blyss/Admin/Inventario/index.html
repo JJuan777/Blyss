@@ -1,7 +1,160 @@
 {% extends 'layouts/layoutHome.html' %}
 {% load static %}
+
 {% block title %}Inventario{% endblock %}
 
 {% block content %}
-    <h1>Ineventario</h1>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar bg-light collapse" id="sidebarMenu">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link fs-6 py-3" href="{% url 'inventario' %}">
+                            <i class="bi bi-house-door"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fs-6 py-3" href="{% url 'productos' %}">
+                            <i class="bi bi-box-seam"></i> Productos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fs-6 py-3" href="{% url 'categorias' %}">
+                            <i class="bi bi-tags"></i> Categorías
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fs-6 py-3" href="{% url 'subcategorias' %}">
+                            <i class="bi bi-people"></i> Subcategorias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fs-6 py-3" href="#reports">
+                            <i class="bi bi-bar-chart"></i> Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fs-6 py-3" href="#settings">
+                            <i class="bi bi-gear"></i> Configuración
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Toggle button for mobile view -->
+        <button
+            class="btn btn-primary d-md-none mb-3"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu"
+            aria-controls="sidebarMenu"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+            <i class="bi bi-list"></i> Menú
+        </button>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 px-lg-6">
+            
+            <div class="container-fluid py-4">
+                {% block dynamic_content %}
+                <!-- Encabezado -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h2">Dashboard</h1>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Añadir Registro
+                    </button>
+                </div>
+                
+                <!-- Bienvenida -->
+                <p class="text-muted">Bienvenido al panel de gestión de inventarios. Aquí puedes monitorear tus métricas clave, administrar productos y analizar el desempeño.</p>
+                
+                <!-- Tarjetas de métricas clave -->
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Productos Totales</h5>
+                                <p class="card-text fs-4 fw-bold">1,254</p>
+                                <p class="text-muted">Actualizado hace 5 minutos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Categorías</h5>
+                                <p class="card-text fs-4 fw-bold">42</p>
+                                <p class="text-muted">Nuevas: 2</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Proveedores</h5>
+                                <p class="card-text fs-4 fw-bold">18</p>
+                                <p class="text-muted">Recientemente añadidos: 3</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Reportes Generados</h5>
+                                <p class="card-text fs-4 fw-bold">128</p>
+                                <p class="text-muted">Esta semana</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Sección de gráficos -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Inventario por Categoría</h5>
+                                <canvas id="inventoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Proveedores Activos</h5>
+                                <canvas id="suppliersChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Lista dinámica -->
+                <div class="mt-4">
+                    <h3>Últimas Actividades</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Nuevo producto agregado: <strong>Teclado Mecánico RGB</strong></span>
+                            <span class="badge bg-success">Hace 10 minutos</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Proveedor actualizado: <strong>Electro S.A.</strong></span>
+                            <span class="badge bg-warning">Hace 30 minutos</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Reporte generado: <strong>Ventas Octubre</strong></span>
+                            <span class="badge bg-info">Hace 1 hora</span>
+                        </li>
+                    </ul>
+                </div>
+                {% endblock %}
+            </div>
+        </main>
+        
+    </div>
+</div>
 {% endblock %}

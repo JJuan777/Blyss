@@ -1,0 +1,206 @@
+{% extends 'Blyss/Admin/Inventario/index.html' %}
+{% load static %}
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h2">Gestión de Productos</h2>
+        <a href="{% url 'productos' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Formulario de productos -->
+    <form id="add-producto-form" method="POST" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="row g-4">
+            <!-- Nombre del producto -->
+            <div class="col-md-6">
+                <label for="nombre" class="form-label">Nombre del Producto <span class="text-danger">*</span></label>
+                <input 
+                    type="text" 
+                    name="nombre" 
+                    id="nombre" 
+                    class="form-control" 
+                    placeholder="Ingresa el nombre del producto" 
+                    maxlength="150" 
+                    required>
+                <div class="invalid-feedback">El nombre es obligatorio y no debe exceder los 150 caracteres.</div>
+            </div>
+
+            <!-- SKU -->
+            <div class="col-md-6">
+                <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
+                <input 
+                    type="text" 
+                    name="sku" 
+                    id="sku" 
+                    class="form-control" 
+                    placeholder="Ingresa el SKU" 
+                    maxlength="50" 
+                    required>
+                <div class="invalid-feedback">El SKU es obligatorio y no debe exceder los 50 caracteres.</div>
+            </div>
+
+            <!-- Categoría -->
+            <div class="col-md-6">
+                <label for="categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
+                <select name="categoria" id="categoria" class="form-select" required>
+                    <option value="" disabled selected>Selecciona una categoría</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.IdCategoria }}">{{ categoria.Nombre }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">Seleccionar una categoría es obligatorio.</div>
+            </div>
+
+            <!-- Subcategoría -->
+            <div class="col-md-6">
+                <label for="subcategoria" class="form-label">Subcategoría <span class="text-danger">*</span></label>
+                <select name="subcategoria" id="subcategoria" class="form-select" required>
+                    <option value="" disabled selected>Selecciona una subcategoría</option>
+                    {% for subcategorias in subcategorias %}
+                    <option value="{{ subcategorias.IdSubCategoria }}">{{ subcategorias.Nombre }}</option>
+                    {% endfor %}
+                    <!-- Opciones cargadas dinámicamente -->
+                </select>
+                <div class="invalid-feedback">Seleccionar una subcategoría es obligatorio.</div>
+            </div>
+
+            <!-- Precio -->
+            <div class="col-md-4">
+                <label for="precio" class="form-label">Precio <span class="text-danger">*</span></label>
+                <input 
+                    type="number" 
+                    name="precio" 
+                    id="precio" 
+                    class="form-control" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="Ej: 59.99" 
+                    required>
+                <div class="invalid-feedback">El precio es obligatorio y no puede ser negativo.</div>
+            </div>
+
+            <!-- Precio con descuento -->
+            <div class="col-md-4">
+                <label for="precio_descuento" class="form-label">Precio con Descuento</label>
+                <input 
+                    type="number" 
+                    name="precio_descuento" 
+                    id="precio_descuento" 
+                    class="form-control" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="Ej: 49.99">
+                <small class="text-muted">Opcional y puede editarse más adelante.</small>
+                <div class="invalid-feedback">El precio con descuento no puede ser negativo.</div>
+            </div>
+
+            <!-- Marca -->
+            <div class="col-md-4">
+                <label for="marca" class="form-label">Marca <span class="text-danger">*</span></label>
+                <input 
+                    type="text" 
+                    name="marca" 
+                    id="marca" 
+                    class="form-control" 
+                    placeholder="Ej: Logitech" 
+                    maxlength="100" 
+                    required>
+                <div class="invalid-feedback">La marca es obligatoria y no debe exceder los 100 caracteres.</div>
+            </div>
+
+            <!-- Stock -->
+            <div class="col-md-4">
+                <label for="stock" class="form-label">Stock <span class="text-danger">*</span></label>
+                <input 
+                    type="number" 
+                    name="stock" 
+                    id="stock" 
+                    class="form-control" 
+                    min="0" 
+                    placeholder="Ej: 120" 
+                    required>
+                <div class="invalid-feedback">El stock es obligatorio y no puede ser negativo.</div>
+            </div>
+
+            <!-- Stock máximo -->
+            <div class="col-md-4">
+                <label for="stock_max" class="form-label">Stock Máximo <span class="text-danger">*</span></label>
+                <input 
+                    type="number" 
+                    name="stock_max" 
+                    id="stock_max" 
+                    class="form-control" 
+                    min="0" 
+                    placeholder="Ej: 500" 
+                    required>
+                <div class="invalid-feedback">El stock máximo es obligatorio y no puede ser negativo.</div>
+            </div>
+
+            <!-- Stock mínimo -->
+            <div class="col-md-4">
+                <label for="stock_min" class="form-label">Stock Mínimo <span class="text-danger">*</span></label>
+                <input 
+                    type="number" 
+                    name="stock_min" 
+                    id="stock_min" 
+                    class="form-control" 
+                    min="0" 
+                    placeholder="Ej: 20" 
+                    required>
+                <div class="invalid-feedback">El stock mínimo es obligatorio y no puede ser negativo.</div>
+            </div>
+
+            <!-- Peso -->
+            <div class="col-md-6">
+                <label for="peso" class="form-label">Peso (kg) <span class="text-danger">*</span></label>
+                <input 
+                    type="number" 
+                    name="peso" 
+                    id="peso" 
+                    class="form-control" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="Ej: 1.5" 
+                    required>
+                <div class="invalid-feedback">El peso es obligatorio y no puede ser negativo.</div>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-md-6">
+                <label for="estado" class="form-label">Estado <span class="text-danger">*</span></label>
+                <select name="estado" id="estado" class="form-select" required>
+                    <option value="" disabled selected>Selecciona un estado</option>
+                    <option value="1">Activo</option>
+                    <option value="0">Inactivo</option>
+                </select>
+                <div class="invalid-feedback">El estado es obligatorio.</div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="col-12">
+                <label for="descripcion" class="form-label">Descripción <span class="text-danger">*</span></label>
+                <textarea 
+                    name="descripcion" 
+                    id="descripcion" 
+                    class="form-control" 
+                    rows="4" 
+                    maxlength="500" 
+                    placeholder="Describe el producto aquí" 
+                    required></textarea>
+                <div class="invalid-feedback">La descripción es obligatoria y no debe exceder los 500 caracteres.</div>
+            </div>
+        </div>
+
+        <!-- Botón de enviar -->
+        <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Guardar Producto
+            </button>
+        </div>
+    </form>
+</div>
+<script src="{% static 'js/Admin/Inventario/Productos/addProducto.js' %}"></script>
+{% endblock %}
