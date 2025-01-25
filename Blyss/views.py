@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Productos, Categorias, Subcategorias
+from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos
 from django.core.paginator import Paginator
 
 @login_required
@@ -158,6 +158,7 @@ def obtener_productos(request):
 
     productos_data = [
         {
+            'IdProducto': producto.IdProducto,
             'nombre': producto.Nombre,
             'sku': producto.SKU,
             'stock': producto.Stock,
@@ -207,10 +208,45 @@ def add_producto_view(request):
             )
             producto.save()
 
+            # Registrar la categoría
+            categoria_id = data.get("categoria")
+            if categoria_id:
+                categoria = Categorias.objects.get(IdCategoria=categoria_id)
+                CategoriasProductos.objects.create(IdProducto=producto, IdCategoria=categoria)
+
+            # Registrar la subcategoría
+            subcategoria_id = data.get("subcategoria")
+            if subcategoria_id:
+                subcategoria = Subcategorias.objects.get(IdSubCategoria=subcategoria_id)
+                SubcategoriasProductos.objects.create(IdProducto=producto, IdSubcategoria=subcategoria)
+
             return JsonResponse({"success": True, "message": "Producto registrado exitosamente"})
         except Exception as e:
             return JsonResponse({"success": False, "message": str(e)})
     return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
+
+@login_required
+def detproducto_view(request, producto_id):
+    # Obtener el producto
+    producto = get_object_or_404(Productos, pk=producto_id)
+
+    # Obtener la categoría y subcategoría asociadas al producto
+    categoria_producto = CategoriasProductos.objects.filter(IdProducto=producto).first()
+    subcategoria_producto = SubcategoriasProductos.objects.filter(IdProducto=producto).first()
+
+    # Obtener todas las categorías y subcategorías
+    categorias = Categorias.objects.all()
+    subcategorias = Subcategorias.objects.all()
+
+    context = {
+        "producto": producto,
+        "categoria_producto": categoria_producto.IdCategoria.IdCategoria if categoria_producto else None,
+        "subcategoria_producto": subcategoria_producto.IdSubcategoria.IdSubCategoria if subcategoria_producto else None,
+        "categorias": categorias,
+        "subcategorias": subcategorias,
+    }
+
+    return render(request, "Blyss/Admin/Inventario/Productos/detProducto.html", context)
 
 @login_required
 def categorias_view(request):

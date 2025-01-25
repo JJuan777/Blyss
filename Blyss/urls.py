@@ -15,6 +15,7 @@ urlpatterns = [
     path('Admin/inventario/productos/add', views.addproductos_view, name='add_productos'),
     path("admin/inventario/add-producto/", views.add_producto_view, name="add_producto"),
     path('admin/inventario/obtener-productos/', views.obtener_productos, name='obtener_productos'),
+    path('admin/inventario/productos/view/<int:producto_id>/', views.detproducto_view, name='det_producto'),
         #Categorias
     path('admin/inventario/categorias/', views.categorias_view, name='categorias'),
     path('admin/inventario/obtener-categorias/', views.obtener_categorias, name='obtener_categorias'),

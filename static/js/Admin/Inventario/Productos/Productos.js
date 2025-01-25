@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <td>${producto.marca}</td>
                             <td class="text-center"><span class="badge ${producto.estado === 'Activo' ? 'bg-success' : 'bg-danger'}">${producto.estado}</span></td>
                             <td class="text-center">
-                            <a href="#" class="btn btn-sm btn-info">
+                            <a href="/Blyss/admin/inventario/productos/view/${producto.IdProducto}/" class="btn btn-sm btn-info">
                                 <i class="bi bi-info-circle"></i>
                             </a>
                             </td>

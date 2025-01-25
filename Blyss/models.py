@@ -93,3 +93,19 @@ class Productos(models.Model):
 
     def __str__(self):
         return self.Nombre
+    
+class CategoriasProductos(models.Model):
+    IdCategoriaProducto = models.AutoField(primary_key=True)
+    IdProducto = models.ForeignKey(Productos, on_delete=models.CASCADE, related_name="categorias_productos")
+    IdCategoria = models.ForeignKey(Categorias, on_delete=models.CASCADE, related_name="categorias_productos")
+
+    def __str__(self):
+        return f"{self.IdProducto.Nombre} - {self.IdCategoria.Nombre}"
+    
+class SubcategoriasProductos(models.Model):
+    IdSubcategoriaProducto = models.AutoField(primary_key=True)
+    IdProducto = models.ForeignKey(Productos, on_delete=models.CASCADE, related_name="subcategorias_productos")
+    IdSubcategoria = models.ForeignKey(Subcategorias, on_delete=models.CASCADE, related_name="subcategorias_productos")
+
+    def __str__(self):
+        return f"{self.IdProducto.Nombre} - {self.IdSubcategoria.Nombre}"

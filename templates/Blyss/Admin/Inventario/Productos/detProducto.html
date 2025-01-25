@@ -1,0 +1,99 @@
+{% extends 'Blyss/Admin/Inventario/index.html' %}
+{% load static %}
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h2 text-primary"><i class="bi bi-box"></i> Detalles del Producto</h2>
+        <a href="{% url 'productos' %}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Tarjeta de detalles del producto -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 text-dark" id="editable-nombre">{{ producto.Nombre }}</h5>
+            <button id="edit-toggle" class="btn btn-outline-primary btn-sm" data-id="{{ producto.IdProducto }}">
+                <i class="bi bi-pencil"></i> Habilitar Edición
+            </button>
+        </div>
+        <div class="card-body">
+            <!-- Información del producto -->
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-upc"></i> SKU</h6>
+                <p id="editable-sku" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.SKU }}</p>
+            </div>
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-currency-dollar"></i> Precio</h6>
+                <p id="editable-precio" class="form-control-plaintext border bg-light p-2 rounded">${{ producto.Precio }}</p>
+            </div>
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-currency-dollar"></i> Precio con Descuento</h6>
+                <p id="editable-precio-descuento" class="form-control-plaintext border bg-light p-2 rounded">
+                    ${{ producto.PrecioDescuento }}
+                </p>
+            </div>
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-boxes"></i> Stock</h6>
+                <p id="editable-stock" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Stock }}</p>
+            </div>
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-list-check"></i> Descripción</h6>
+                <p id="editable-descripcion" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Descripcion }}</p>
+            </div>
+
+            <!-- Categoría -->
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-tags"></i> Categoría</h6>
+                <select id="editable-categoria" class="form-select" disabled>
+                    <option value="" selected disabled>Selecciona una categoría</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.IdCategoria }}"
+                            {% if categoria_producto == categoria.IdCategoria %}selected{% endif %}>
+                            {{ categoria.Nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subcategoría -->
+            <div class="mb-4">
+                <h6 class="text-secondary"><i class="bi bi-tag"></i> Subcategoría</h6>
+                <select id="editable-subcategoria" class="form-select" disabled>
+                    <option value="" selected disabled>Selecciona una subcategoría</option>
+                    {% for subcategoria in subcategorias %}
+                        <option value="{{ subcategoria.IdSubCategoria }}"
+                            {% if subcategoria_producto == subcategoria.IdSubCategoria %}selected{% endif %}>
+                            {{ subcategoria.Nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Estado -->
+            <div>
+                <h6 class="text-secondary"><i class="bi bi-toggle-on"></i> Estado</h6>
+                <select id="editable-estado" class="form-select d-inline w-auto" disabled>
+                    <option value="True" {% if producto.Estado %}selected{% endif %}>Activo</option>
+                    <option value="False" {% if not producto.Estado %}selected{% endif %}>Inactivo</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="text-end mt-4">
+        <button id="save-changes" class="btn btn-success btn-sm d-none">
+            <i class="bi bi-save"></i> Guardar Cambios
+        </button>
+        <button id="delete-product" class="btn btn-danger btn-sm">
+            <i class="bi bi-trash"></i> Eliminar Producto
+        </button>
+    </div>
+
+    <!-- Token CSRF -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+</div>
+<script src="{% static 'js/Admin/Inventario/Productos/detProducto.js' %}"></script>
+{% endblock %}

@@ -23,6 +23,13 @@ document.addEventListener("DOMContentLoaded", function () {
         // Convertir el valor del estado a booleano
         data.estado = data.estado === "1";
 
+        // Agregar categoría y subcategoría
+        const categoriaSelect = document.querySelector("#categoria");
+        const subcategoriaSelect = document.querySelector("#subcategoria");
+
+        data.categoria = categoriaSelect ? categoriaSelect.value : null;
+        data.subcategoria = subcategoriaSelect ? subcategoriaSelect.value : null;
+
         fetch("/Blyss/admin/inventario/add-producto/", {
             method: "POST",
             headers: {
@@ -114,23 +121,38 @@ document.addEventListener("DOMContentLoaded", function () {
                 setError(input, "Este campo es obligatorio.");
                 isValid = false;
             } else if (!isNaN(value) && value < field.min) {
-                setError(
-                    input,
-                    `El valor no puede ser menor que ${field.min}.`
-                );
+                setError(input, `El valor no puede ser menor que ${field.min}.`);
                 isValid = false;
             } else {
                 clearError(input);
             }
         });
 
-        // Validar select
+        // Validar select de estado
         const estado = form.querySelector("#estado");
         if (!estado.value) {
             setError(estado, "Debes seleccionar un estado.");
             isValid = false;
         } else {
             clearError(estado);
+        }
+
+        // Validar select de categoría
+        const categoria = form.querySelector("#categoria");
+        if (!categoria.value) {
+            setError(categoria, "Debes seleccionar una categoría.");
+            isValid = false;
+        } else {
+            clearError(categoria);
+        }
+
+        // Validar select de subcategoría
+        const subcategoria = form.querySelector("#subcategoria");
+        if (!subcategoria.value) {
+            setError(subcategoria, "Debes seleccionar una subcategoría.");
+            isValid = false;
+        } else {
+            clearError(subcategoria);
         }
 
         return isValid;
