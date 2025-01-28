@@ -660,7 +660,7 @@ def producto_view(request, producto_id):
     productos_relacionados = (productos_relacionados | subproductos_relacionados).distinct()[:4]
 
     # Verifica si el usuario tiene productos en su carrito
-    tiene_carrito = Carrito.objects.filter(IdUsuario=request.user).exists()
+    tiene_carrito = Carrito.objects.filter(IdUsuario=request.user, IdProducto=producto).exists()
 
     # Verifica si el producto actual está en los favoritos del usuario
     usuario = request.user
@@ -670,9 +670,8 @@ def producto_view(request, producto_id):
         'producto': producto,
         'productos_relacionados': productos_relacionados,
         'en_favoritos': en_favoritos,  # Agrega esta variable al contexto
-        'tiene_carrito': tiene_carrito,  # Enviar al template
+        'tiene_carrito': tiene_carrito,  # Verificar si el producto está en el carrito
     })
-
 
 @login_required
 def toggle_favorites(request):
