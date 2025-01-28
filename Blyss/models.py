@@ -109,3 +109,26 @@ class SubcategoriasProductos(models.Model):
 
     def __str__(self):
         return f"{self.IdProducto.Nombre} - {self.IdSubcategoria.Nombre}"
+
+class ImagenesProducto(models.Model):
+    IdImagen = models.AutoField(primary_key=True)  # Identificador único de la imagen
+    IdProducto = models.ForeignKey(
+        'Productos',  # Referencia al modelo de Productos
+        on_delete=models.CASCADE,
+        related_name='imagenes'
+    )
+    Imagen = models.BinaryField()  # Campo para almacenar la imagen en formato binario
+    EsPrincipal = models.BooleanField(default=False)  # Indicador si es la imagen principal
+    FechaAgregado = models.DateTimeField(auto_now_add=True)  # Fecha en que se agregó la imagen
+
+    def __str__(self):
+        return f"Imagen de Producto {self.IdProducto.Nombre} (Principal: {self.EsPrincipal})"
+    
+class Favoritos(models.Model):
+    IdFavoritos = models.AutoField(primary_key=True)
+    IdUsuario = models.ForeignKey('Usuarios', on_delete=models.CASCADE, related_name='favoritos')
+    IdProducto = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name='favoritos')
+    FechaAgregado = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Favorito: {self.IdUsuario.Nombre} - {self.IdProducto.Nombre}"

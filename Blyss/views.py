@@ -11,12 +11,17 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos
+from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos
 from django.core.paginator import Paginator
 
 @login_required
 def index(request):
-    return render(request, 'Blyss/index.html', {'mensaje': '¡Bienvenido a Blyss!'})
+    # Consulta los productos activos
+    productos = Productos.objects.filter(Estado=True).order_by('Nombre')  # Solo productos con Estado=True
+    return render(request, 'Blyss/index.html', {
+        'mensaje': '¡Bienvenido a Blyss!',
+        'productos': productos
+    })
 
 def registro_view(request):
     if request.method == 'POST':
@@ -187,13 +192,12 @@ def addproductos_view(request):
 def add_producto_view(request):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
-
-            # Convertir el estado recibido (1 o 0) en un booleano
-            estado = data.get("estado", False)
+            # Procesar los datos del formulario
+            data = request.POST
+            estado = data.get("estado") == "1"
 
             # Crear el producto
-            producto = Productos(
+            producto = Productos.objects.create(
                 Nombre=data.get("nombre"),
                 SKU=data.get("sku"),
                 Precio=data.get("precio"),
@@ -206,19 +210,27 @@ def add_producto_view(request):
                 Peso=data.get("peso"),
                 Descripcion=data.get("descripcion"),
             )
-            producto.save()
 
             # Registrar la categoría
             categoria_id = data.get("categoria")
             if categoria_id:
-                categoria = Categorias.objects.get(IdCategoria=categoria_id)
-                CategoriasProductos.objects.create(IdProducto=producto, IdCategoria=categoria)
+                producto.categorias_productos.create(IdCategoria_id=categoria_id)
 
             # Registrar la subcategoría
             subcategoria_id = data.get("subcategoria")
             if subcategoria_id:
-                subcategoria = Subcategorias.objects.get(IdSubCategoria=subcategoria_id)
-                SubcategoriasProductos.objects.create(IdProducto=producto, IdSubcategoria=subcategoria)
+                producto.subcategorias_productos.create(IdSubcategoria_id=subcategoria_id)
+
+            # Procesar las imágenes cargadas
+            for imagen in request.FILES.getlist("imagenes"):
+                if ImagenesProducto.objects.filter(IdProducto=producto).count() >= 10:
+                    break  # No permitir más de 10 imágenes
+
+                ImagenesProducto.objects.create(
+                    IdProducto=producto,
+                    Imagen=imagen.read(),
+                    EsPrincipal=False,  # Se pueden ajustar reglas para seleccionar la imagen principal
+                )
 
             return JsonResponse({"success": True, "message": "Producto registrado exitosamente"})
         except Exception as e:
@@ -238,15 +250,128 @@ def detproducto_view(request, producto_id):
     categorias = Categorias.objects.all()
     subcategorias = Subcategorias.objects.all()
 
+    # Obtener las imágenes asociadas al producto
+    imagenes_producto = ImagenesProducto.objects.filter(IdProducto=producto)
+
     context = {
         "producto": producto,
         "categoria_producto": categoria_producto.IdCategoria.IdCategoria if categoria_producto else None,
         "subcategoria_producto": subcategoria_producto.IdSubcategoria.IdSubCategoria if subcategoria_producto else None,
         "categorias": categorias,
         "subcategorias": subcategorias,
+        "imagenes_producto": imagenes_producto,
     }
 
     return render(request, "Blyss/Admin/Inventario/Productos/detProducto.html", context)
+    
+@login_required
+def cargar_imagen_view(request, producto_id):
+    if request.method == "POST":
+        try:
+            producto = get_object_or_404(Productos, pk=producto_id)
+
+            # Verificar el límite de 10 imágenes
+            if ImagenesProducto.objects.filter(IdProducto=producto).count() >= 10:
+                return JsonResponse({"success": False, "message": "No puedes cargar más de 10 imágenes para este producto."})
+
+            # Verificar si ya existe una imagen principal
+            if request.POST.get("es_principal") == "true" and ImagenesProducto.objects.filter(IdProducto=producto, EsPrincipal=True).exists():
+                return JsonResponse({"success": False, "message": "El producto ya tiene una imagen principal."})
+
+            # Procesar la imagen cargada
+            imagen = request.FILES.get("imagen")
+            if not imagen:
+                return JsonResponse({"success": False, "message": "Debes seleccionar una imagen."})
+
+            # Guardar la imagen en la base de datos
+            ImagenesProducto.objects.create(
+                IdProducto=producto,
+                Imagen=imagen.read(),
+                EsPrincipal=request.POST.get("es_principal") == "true",
+            )
+
+            return JsonResponse({"success": True, "message": "Imagen cargada correctamente."})
+        except ValidationError as e:
+            return JsonResponse({"success": False, "message": str(e)})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido."})
+
+@csrf_exempt
+def eliminar_imagen_view(request, imagen_id):
+    if request.method == "POST":
+        try:
+            # Obtener la imagen por su ID
+            imagen = get_object_or_404(ImagenesProducto, pk=imagen_id)
+            imagen.delete()
+
+            return JsonResponse({"success": True, "message": "Imagen eliminada correctamente."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+    return JsonResponse({"success": False, "message": "Método no permitido."})
+
+@login_required
+@csrf_exempt
+def actualizar_producto_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            producto_id = data.get("producto_id")
+            producto = get_object_or_404(Productos, pk=producto_id)
+
+            # Actualizar los campos básicos del producto
+            producto.Nombre = data.get("nombre", producto.Nombre)
+            producto.SKU = data.get("sku", producto.SKU)
+            producto.Precio = data.get("precio", producto.Precio)
+            producto.PrecioDescuento = data.get("precio_descuento", producto.PrecioDescuento)
+            producto.Stock = data.get("stock", producto.Stock)
+            producto.Descripcion = data.get("descripcion", producto.Descripcion)
+            producto.Estado = data.get("estado", producto.Estado)
+            producto.save()
+
+            # Actualizar categoría del producto
+            categoria_id = data.get("categoria_id")
+            if categoria_id:
+                categoria = get_object_or_404(Categorias, pk=categoria_id)
+                CategoriasProductos.objects.update_or_create(
+                    IdProducto=producto,
+                    defaults={"IdCategoria": categoria},
+                )
+
+            # Actualizar subcategoría del producto
+            subcategoria_id = data.get("subcategoria_id")
+            if subcategoria_id:
+                subcategoria = get_object_or_404(Subcategorias, pk=subcategoria_id)
+                SubcategoriasProductos.objects.update_or_create(
+                    IdProducto=producto,
+                    defaults={"IdSubcategoria": subcategoria},
+                )
+
+            return JsonResponse({"success": True, "message": "Producto actualizado correctamente."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido."})
+
+@csrf_exempt
+def eliminar_producto_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            producto_id = data.get("producto_id")
+
+            # Verificar que el producto existe
+            producto = get_object_or_404(Productos, pk=producto_id)
+
+            # Eliminar el producto
+            producto.delete()
+
+            return JsonResponse({"success": True, "message": "Producto eliminado correctamente."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido."})
 
 @login_required
 def categorias_view(request):
@@ -510,3 +635,62 @@ def detsubcategoria_view(request, id):
     return render(request, 'Blyss/Admin/Inventario/Subcategorias/detSubcategoria.html', {
         'subcategoria': subcategoria
     })
+
+@login_required
+def producto_view(request, producto_id):
+    # Obtén el producto actual
+    producto = get_object_or_404(Productos, pk=producto_id)
+
+    # Obtén todas las categorías del producto actual
+    categorias_ids = list(producto.categorias_productos.values_list('IdCategoria', flat=True))
+
+    # Obtén todas las subcategorías del producto actual
+    subcategorias_ids = list(producto.subcategorias_productos.values_list('IdSubcategoria', flat=True))
+
+    # Encuentra productos relacionados (categorías y subcategorías)
+    productos_relacionados = Productos.objects.filter(
+        categorias_productos__IdCategoria__in=categorias_ids
+    ).exclude(IdProducto=producto.IdProducto)
+
+    subproductos_relacionados = Productos.objects.filter(
+        subcategorias_productos__IdSubcategoria__in=subcategorias_ids
+    ).exclude(IdProducto=producto.IdProducto)
+
+    # Combinar y limitar los resultados a 4 productos
+    productos_relacionados = (productos_relacionados | subproductos_relacionados).distinct()[:4]
+
+    # Verifica si el producto actual está en los favoritos del usuario
+    usuario = request.user
+    en_favoritos = usuario.favoritos.filter(IdProducto=producto).exists()
+
+    return render(request, 'Blyss/Producto/index.html', {
+        'producto': producto,
+        'productos_relacionados': productos_relacionados,
+        'en_favoritos': en_favoritos,  # Agrega esta variable al contexto
+    })
+
+
+@login_required
+def toggle_favorites(request):
+    if request.method == 'POST':
+        producto_id = request.POST.get('producto_id')
+
+        # Verifica si el producto existe
+        producto = Productos.objects.filter(IdProducto=producto_id).first()
+        if not producto:
+            return JsonResponse({'success': False, 'message': 'El producto no existe.'}, status=404)
+
+        # Verifica si el producto ya está en favoritos
+        usuario = request.user
+        favorito = Favoritos.objects.filter(IdUsuario=usuario, IdProducto=producto).first()
+
+        if favorito:
+            # Si ya está en favoritos, elimínalo
+            favorito.delete()
+            return JsonResponse({'success': True, 'message': 'Producto eliminado de favoritos.', 'favorito': False})
+        else:
+            # Si no está en favoritos, añádelo
+            Favoritos.objects.create(IdUsuario=usuario, IdProducto=producto)
+            return JsonResponse({'success': True, 'message': 'Producto añadido a favoritos.', 'favorito': True})
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)

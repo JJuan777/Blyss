@@ -1,7 +1,18 @@
 {% extends 'layouts/layoutHome.html' %}
 {% load static %}
-{% block title %}Home{% endblock %}
+{% block title %}Productos{% endblock %}
 
 {% block content %}
     <h1>{{ mensaje }}</h1>
+    <ul>
+        {% for producto in productos %}
+            <li>
+                <a href="{% url 'producto' producto.IdProducto %}">
+                    {{ producto.Nombre }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No hay productos disponibles.</li>
+        {% endfor %}
+    </ul>
 {% endblock %}

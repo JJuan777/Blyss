@@ -1,11 +1,12 @@
 {% extends 'Blyss/Admin/Inventario/index.html' %}
+{% load custom_filters %}
 {% load static %}
 {% block dynamic_content %}
 <div class="container-fluid py-4">
     <!-- Encabezado -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h2 text-primary"><i class="bi bi-box"></i> Detalles del Producto</h2>
-        <a href="{% url 'productos' %}" class="btn btn-secondary btn-sm">
+        <h2 class="h2">Detalles del Producto</h2>
+        <a href="{% url 'productos' %}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
     </div>
@@ -13,81 +14,192 @@
     <!-- Tarjeta de detalles del producto -->
     <div class="card shadow-sm">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0 text-dark" id="editable-nombre">{{ producto.Nombre }}</h5>
+            <h5 class="card-title mb-0" id="editable-nombre">{{ producto.Nombre }}</h5>
             <button id="edit-toggle" class="btn btn-outline-primary btn-sm" data-id="{{ producto.IdProducto }}">
                 <i class="bi bi-pencil"></i> Habilitar Edición
             </button>
         </div>
         <div class="card-body">
-            <!-- Información del producto -->
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-upc"></i> SKU</h6>
-                <p id="editable-sku" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.SKU }}</p>
-            </div>
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-currency-dollar"></i> Precio</h6>
-                <p id="editable-precio" class="form-control-plaintext border bg-light p-2 rounded">${{ producto.Precio }}</p>
-            </div>
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-currency-dollar"></i> Precio con Descuento</h6>
-                <p id="editable-precio-descuento" class="form-control-plaintext border bg-light p-2 rounded">
-                    ${{ producto.PrecioDescuento }}
-                </p>
-            </div>
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-boxes"></i> Stock</h6>
-                <p id="editable-stock" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Stock }}</p>
-            </div>
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-list-check"></i> Descripción</h6>
-                <p id="editable-descripcion" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Descripcion }}</p>
-            </div>
+            <div class="row g-4">
+                <!-- Nombre del producto -->
+                <div class="col-md-6">
+                    <h6 class="form-label">Nombre del Producto <span class="text-danger">*</span></h6>
+                    <p id="editable-nombre" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Nombre }}</p>
+                </div>
 
-            <!-- Categoría -->
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-tags"></i> Categoría</h6>
-                <select id="editable-categoria" class="form-select" disabled>
-                    <option value="" selected disabled>Selecciona una categoría</option>
-                    {% for categoria in categorias %}
-                        <option value="{{ categoria.IdCategoria }}"
-                            {% if categoria_producto == categoria.IdCategoria %}selected{% endif %}>
-                            {{ categoria.Nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+                <!-- SKU -->
+                <div class="col-md-6">
+                    <h6 class="form-label">SKU <span class="text-danger">*</span></h6>
+                    <p id="editable-sku" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.SKU }}</p>
+                </div>
 
-            <!-- Subcategoría -->
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-tag"></i> Subcategoría</h6>
-                <select id="editable-subcategoria" class="form-select" disabled>
-                    <option value="" selected disabled>Selecciona una subcategoría</option>
-                    {% for subcategoria in subcategorias %}
-                        <option value="{{ subcategoria.IdSubCategoria }}"
-                            {% if subcategoria_producto == subcategoria.IdSubCategoria %}selected{% endif %}>
-                            {{ subcategoria.Nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+                <!-- Categoría -->
+                <div class="col-md-6">
+                    <h6 class="form-label">Categoría <span class="text-danger">*</span></h6>
+                    <select id="editable-categoria" class="form-select" disabled>
+                        <option value="" selected disabled>Selecciona una categoría</option>
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.IdCategoria }}"
+                                {% if categoria_producto == categoria.IdCategoria %}selected{% endif %}>
+                                {{ categoria.Nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <!-- Estado -->
-            <div>
-                <h6 class="text-secondary"><i class="bi bi-toggle-on"></i> Estado</h6>
-                <select id="editable-estado" class="form-select d-inline w-auto" disabled>
-                    <option value="True" {% if producto.Estado %}selected{% endif %}>Activo</option>
-                    <option value="False" {% if not producto.Estado %}selected{% endif %}>Inactivo</option>
-                </select>
+                <!-- Subcategoría -->
+                <div class="col-md-6">
+                    <h6 class="form-label">Subcategoría <span class="text-danger">*</span></h6>
+                    <select id="editable-subcategoria" class="form-select" disabled>
+                        <option value="" selected disabled>Selecciona una subcategoría</option>
+                        {% for subcategoria in subcategorias %}
+                            <option value="{{ subcategoria.IdSubCategoria }}"
+                                {% if subcategoria_producto == subcategoria.IdSubCategoria %}selected{% endif %}>
+                                {{ subcategoria.Nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Precio -->
+                <div class="col-md-4">
+                    <h6 class="form-label">Precio <span class="text-danger">*</span></h6>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input
+                            id="editable-precio"
+                            type="number"
+                            class="form-control"
+                            value="{{ producto.Precio }}"
+                            step="0.01"
+                            min="0"
+                            disabled
+                        />
+                    </div>
+                </div>
+
+                <!-- Precio con Descuento -->
+                <div class="col-md-4">
+                    <h6 class="form-label">Precio con Descuento</h6>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input
+                            id="editable-precio-descuento"
+                            type="number"
+                            class="form-control"
+                            value="{{ producto.PrecioDescuento }}"
+                            step="0.01"
+                            min="0"
+                            disabled
+                        />
+                    </div>
+                </div>
+
+                <!-- Stock -->
+                <div class="col-md-4">
+                    <h6 class="form-label">Stock <span class="text-danger">*</span></h6>
+                    <p id="editable-stock" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Stock }}</p>
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-12">
+                    <h6 class="form-label">Descripción <span class="text-danger">*</span></h6>
+                    <p id="editable-descripcion" class="form-control-plaintext border bg-light p-2 rounded">{{ producto.Descripcion }}</p>
+                </div>
+
+                <!-- Estado -->
+                <div class="col-md-6">
+                    <h6 class="form-label">Estado <span class="text-danger">*</span></h6>
+                    <select id="editable-estado" class="form-select d-inline w-auto" disabled>
+                        <option value="True" {% if producto.Estado %}selected{% endif %}>Activo</option>
+                        <option value="False" {% if not producto.Estado %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Sección de Imágenes -->
+    <div class="accordion mt-4" id="accordionImages">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingImages">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImages" aria-expanded="false" aria-controls="collapseImages">
+                    Imágenes del Producto
+                </button>
+            </h2>
+            <div id="collapseImages" class="accordion-collapse collapse show" aria-labelledby="headingImages" data-bs-parent="#accordionImages">
+                <div class="accordion-body">
+                    <!-- Formulario para cargar imágenes -->
+                    {% if imagenes_producto|length < 10 %}
+                    <form id="upload-form" enctype="multipart/form-data" class="d-flex align-items-center gap-3" data-product-id="{{ producto.IdProducto }}">
+                        <div class="input-group">
+                            <label for="imagen-input" class="input-group-text">Cargar Imagen</label>
+                            <input 
+                                type="file" 
+                                name="imagen" 
+                                id="imagen-input" 
+                                class="form-control form-control-sm" 
+                                accept="image/*" 
+                                required
+                            />
+                        </div>
+                        <div class="form-check">
+                            <input 
+                                type="checkbox" 
+                                name="es_principal" 
+                                id="es_principal" 
+                                class="form-check-input" 
+                                {% if imagenes_producto|length > 0 and imagenes_producto|yesno:"yes,no" %}disabled{% endif %}
+                            />
+                            <label class="form-check-label" for="es_principal">Principal</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Cargar</button>
+                    </form>
+                    {% else %}
+                        <p class="text-danger mb-0">Límite de imágenes alcanzado (10).</p>
+                    {% endif %}
+
+                    <!-- Lista de imágenes -->
+                    {% if imagenes_producto %}
+                        <div class="row g-4 mt-4">
+                            {% for imagen in imagenes_producto %}
+                                <div class="col-md-3">
+                                    <div class="card position-relative">
+                                        <button 
+                                            class="btn-close position-absolute top-0 end-0 m-2 delete-image" 
+                                            data-id="{{ imagen.IdImagen }}" 
+                                            aria-label="Eliminar"
+                                        ></button>
+                                        <img 
+                                            src="data:image/jpeg;base64,{{ imagen.Imagen|b64encode }}" 
+                                            class="card-img-top rounded" 
+                                            alt="Imagen del Producto"
+                                        />
+                                        <div class="card-body text-center">
+                                            {% if imagen.EsPrincipal %}
+                                                <span class="badge bg-success">Principal</span>
+                                            {% endif %}
+                                            <p class="text-muted mb-0 small">Agregado el {{ imagen.FechaAgregado|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mt-4">No hay imágenes asociadas a este producto.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Botones de acción -->
-    <div class="text-end mt-4">
-        <button id="save-changes" class="btn btn-success btn-sm d-none">
-            <i class="bi bi-save"></i> Guardar Cambios
+    <div class="d-flex justify-content-end mt-4">
+        <button id="save-changes" class="btn btn-success d-none me-2">
+            <i class="bi bi-check-circle"></i> Guardar Cambios
         </button>
-        <button id="delete-product" class="btn btn-danger btn-sm">
+        <button id="delete-product" class="btn btn-danger" data-id="{{ producto.IdProducto }}">
             <i class="bi bi-trash"></i> Eliminar Producto
         </button>
     </div>

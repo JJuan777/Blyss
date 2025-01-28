@@ -4,10 +4,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     form.addEventListener("submit", function (event) {
         event.preventDefault(); // Previene el envío predeterminado del formulario
-
+    
         // Validar campos del formulario
         const isValid = validateForm(form);
-
+    
         if (!isValid) {
             Swal.fire({
                 icon: "error",
@@ -16,27 +16,27 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             return;
         }
-
+    
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        // Convertir el valor del estado a booleano
-        data.estado = data.estado === "1";
-
-        // Agregar categoría y subcategoría
-        const categoriaSelect = document.querySelector("#categoria");
-        const subcategoriaSelect = document.querySelector("#subcategoria");
-
-        data.categoria = categoriaSelect ? categoriaSelect.value : null;
-        data.subcategoria = subcategoriaSelect ? subcategoriaSelect.value : null;
-
+    
+        // Validar que el número de imágenes no exceda el límite
+        const files = formData.getAll("imagenes");
+        if (files.length > 10) {
+            Swal.fire({
+                icon: "error",
+                title: "Demasiadas imágenes",
+                text: "Solo puedes cargar un máximo de 10 imágenes.",
+            });
+            return;
+        }
+    
+        // Enviar la solicitud al servidor
         fetch("/Blyss/admin/inventario/add-producto/", {
             method: "POST",
             headers: {
                 "X-CSRFToken": csrfToken,
-                "Content-Type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: formData,
         })
             .then((response) => {
                 if (response.ok) {
@@ -49,10 +49,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     Swal.fire({
                         icon: "success",
                         title: "Producto registrado",
-                        text: "El producto ha sido registrado exitosamente.",
+                        text: "El producto y las imágenes han sido registrados exitosamente.",
                         confirmButtonText: "Aceptar",
                     }).then(() => {
+                        // Limpiar el formulario
                         form.reset();
+    
+                        // Eliminar las previsualizaciones
+                        const previewContainer = document.getElementById("preview-container");
+                        previewContainer.innerHTML = "";
+    
+                        // Limpiar validaciones (si tienes una función personalizada para esto)
                         clearAllValidation(form);
                     });
                 } else {
@@ -71,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     text: "Ocurrió un error al procesar la solicitud.",
                 });
             });
-    });
+    });    
 
     // Función para validar el formulario
     function validateForm(form) {
@@ -186,4 +193,78 @@ document.addEventListener("DOMContentLoaded", function () {
             errorDiv.textContent = "";
         });
     }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const imageInput = document.getElementById("imagenes");
+    const previewContainer = document.getElementById("preview-container");
+
+    // Manejar la selección de imágenes
+    imageInput.addEventListener("change", function () {
+        // Limpiar las previsualizaciones anteriores
+        previewContainer.innerHTML = "";
+
+        const files = Array.from(this.files);
+
+        // Validar límite de imágenes
+        if (files.length > 10) {
+            Swal.fire({
+                icon: "error",
+                title: "Demasiadas imágenes",
+                text: "Solo puedes cargar un máximo de 10 imágenes.",
+            });
+            this.value = ""; // Limpiar el input
+            return;
+        }
+
+        // Mostrar previsualización de las imágenes seleccionadas
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                // Crear una card para cada imagen
+                const imageCard = document.createElement("div");
+                imageCard.className = "col-md-3 position-relative";
+
+                imageCard.innerHTML = `
+                    <div class="card">
+                        <button 
+                            class="btn-close position-absolute top-0 end-0 m-2 remove-image" 
+                            data-index="${index}" 
+                            aria-label="Eliminar"
+                        ></button>
+                        <img 
+                            src="${e.target.result}" 
+                            class="card-img-top" 
+                            alt="Imagen seleccionada"
+                        />
+                    </div>
+                `;
+
+                previewContainer.appendChild(imageCard);
+            };
+
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Manejar eliminación de imágenes de la selección
+    previewContainer.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-image")) {
+            const index = event.target.getAttribute("data-index");
+
+            // Eliminar la imagen del input
+            const fileList = Array.from(imageInput.files);
+            fileList.splice(index, 1);
+
+            // Crear un nuevo objeto FileList sin la imagen eliminada
+            const dataTransfer = new DataTransfer();
+            fileList.forEach((file) => dataTransfer.items.add(file));
+
+            imageInput.files = dataTransfer.files;
+
+            // Actualizar la previsualización
+            event.target.closest(".col-md-3").remove();
+        }
+    });
 });
