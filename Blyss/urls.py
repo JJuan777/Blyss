@@ -24,6 +24,7 @@ urlpatterns = [
             #General
     path('view/<int:producto_id>/', views.producto_view, name='producto'),
     path('favoritos/toggle/', views.toggle_favorites, name='toggle_favorites'),
+    path('carrito/add/', views.add_to_cart, name='add_to_cart'),
         #Categorias
     path('admin/inventario/categorias/', views.categorias_view, name='categorias'),
     path('admin/inventario/obtener-categorias/', views.obtener_categorias, name='obtener_categorias'),

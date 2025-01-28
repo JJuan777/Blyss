@@ -41,7 +41,6 @@
             </button>
         </div>
 
-        <!-- Detalles del producto -->
         <div class="col-md-5">
             <h1 class="fw-bold d-flex justify-content-between align-items-center">
                 {{ producto.Nombre }}
@@ -78,13 +77,28 @@
                 {% endfor %}
             </p>
         
+            <!-- Contador de cantidad -->
+            <div class="d-flex align-items-center mt-4">
+                <label for="cantidad" class="me-3"><strong>Cantidad:</strong></label>
+                <div class="input-group" style="max-width: 150px;">
+                    <button class="btn btn-outline-secondary btn-sm" id="decrease-btn" type="button">-</button>
+                    <input type="number" id="cantidad" class="form-control text-center" value="1" min="1" max="{{ producto.Stock }}" readonly>
+                    <button class="btn btn-outline-secondary btn-sm" id="increase-btn" type="button">+</button>
+                </div>
+            </div>
+        
             <!-- Botón de acción -->
             <div class="mt-4 d-flex align-items-center">
-                <button class="btn btn-primary btn-lg me-3">
+                <button id="add-to-cart-btn" 
+                        class="btn btn-primary btn-lg me-3" 
+                        data-producto-id="{{ producto.IdProducto }}">
                     <i class="bi bi-cart-plus"></i> Añadir al carrito
                 </button>
+                <!-- Contenedor para el botón dinámico -->
+                <div id="go-to-cart-btn-container"></div>
             </div>
-        </div>
+
+        </div>        
         
     </div>
 
@@ -159,6 +173,13 @@
 
 </div>
 
+
 <script src="{% static 'js/Producto/Producto.js' %}"></script>
-<script src="{% static 'js/Producto/Favoritos.js' %}"></script>
+<script src="{% static 'js/Producto/addFavoritos.js' %}"></script>
+
+<!-- Pasar la variable tiene_carrito desde Django al JavaScript -->
+<script>
+    const tieneCarrito = {{ tiene_carrito|yesno:"true,false" }}; // Valor enviado desde la vista
+</script>
+<script src="{% static 'js/Producto/addCarrito.js' %}"></script>
 {% endblock %}

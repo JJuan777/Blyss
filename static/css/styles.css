@@ -136,6 +136,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* FAVORITOS */
 .favorito-btn {
     display: inline-flex;
     align-items: center;
@@ -151,4 +152,27 @@
 
 .favorito-btn i {
     transition: color 0.2s ease; /* Transición suave para el color del ícono */
+}
+
+/* CARRITO */
+
+.input-group input {
+    font-size: 1rem;
+    font-weight: bold;
+    border: 1px solid #ced4da;
+}
+
+.input-group .btn {
+    width: 2.5rem;
+}
+
+.input-group button {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.input-group button:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
 }

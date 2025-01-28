@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos
+from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
 from django.core.paginator import Paginator
 
 @login_required
@@ -659,6 +659,9 @@ def producto_view(request, producto_id):
     # Combinar y limitar los resultados a 4 productos
     productos_relacionados = (productos_relacionados | subproductos_relacionados).distinct()[:4]
 
+    # Verifica si el usuario tiene productos en su carrito
+    tiene_carrito = Carrito.objects.filter(IdUsuario=request.user).exists()
+
     # Verifica si el producto actual está en los favoritos del usuario
     usuario = request.user
     en_favoritos = usuario.favoritos.filter(IdProducto=producto).exists()
@@ -667,6 +670,7 @@ def producto_view(request, producto_id):
         'producto': producto,
         'productos_relacionados': productos_relacionados,
         'en_favoritos': en_favoritos,  # Agrega esta variable al contexto
+        'tiene_carrito': tiene_carrito,  # Enviar al template
     })
 
 
@@ -692,5 +696,44 @@ def toggle_favorites(request):
             # Si no está en favoritos, añádelo
             Favoritos.objects.create(IdUsuario=usuario, IdProducto=producto)
             return JsonResponse({'success': True, 'message': 'Producto añadido a favoritos.', 'favorito': True})
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
+
+@login_required
+def add_to_cart(request):
+    if request.method == 'POST':
+        producto_id = request.POST.get('producto_id')
+        cantidad = int(request.POST.get('cantidad', 1))
+
+        # Verifica si el producto existe
+        producto = Productos.objects.filter(IdProducto=producto_id).first()
+        if not producto:
+            return JsonResponse({'success': False, 'message': 'El producto no existe.'}, status=404)
+
+        # Verifica que la cantidad no exceda el stock
+        if cantidad > producto.Stock:
+            return JsonResponse({'success': False, 'message': 'Cantidad excede el stock disponible.'}, status=400)
+
+        # Agregar al carrito o actualizar cantidad si ya existe
+        carrito_item, created = Carrito.objects.get_or_create(
+            IdUsuario=request.user,
+            IdProducto=producto,
+            defaults={'Cantidad': cantidad}
+        )
+        if not created:
+            # Si el producto ya está en el carrito, incrementa la cantidad
+            nueva_cantidad = carrito_item.Cantidad + cantidad
+            if nueva_cantidad > producto.Stock:
+                nueva_cantidad = producto.Stock  # No puede exceder el stock
+            carrito_item.Cantidad = nueva_cantidad
+            carrito_item.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Cantidad actualizada: {nueva_cantidad} unidades en el carrito.',
+                'nueva_cantidad': nueva_cantidad
+            })
+
+        return JsonResponse({'success': True, 'message': 'Producto añadido al carrito.'})
 
     return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)

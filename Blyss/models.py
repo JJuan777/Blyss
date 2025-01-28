@@ -132,3 +132,21 @@ class Favoritos(models.Model):
 
     def __str__(self):
         return f"Favorito: {self.IdUsuario.Nombre} - {self.IdProducto.Nombre}"
+
+class Carrito(models.Model):
+    IdCarrito = models.AutoField(primary_key=True)  # Identificador único del carrito
+    IdUsuario = models.ForeignKey(
+        'Usuarios',  # Relación con el modelo Usuarios
+        on_delete=models.CASCADE,
+        related_name='carritos'
+    )
+    IdProducto = models.ForeignKey(
+        'Productos',  # Relación con el modelo Productos
+        on_delete=models.CASCADE,
+        related_name='carritos'
+    )
+    Cantidad = models.PositiveIntegerField(default=1)  # Cantidad de productos en el carrito
+    FechaAgregado = models.DateTimeField(auto_now_add=True)  # Fecha y hora en que se agregó el producto
+
+    def __str__(self):
+        return f"Carrito - Usuario: {self.IdUsuario.Nombre}, Producto: {self.IdProducto.Nombre}, Cantidad: {self.Cantidad}"
