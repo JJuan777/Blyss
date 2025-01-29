@@ -1,4 +1,4 @@
-// Checar y limitar existencias de producto en el carrito
+// ✅ Limitar la cantidad de productos seleccionados
 document.addEventListener("DOMContentLoaded", function () {
     const decreaseBtn = document.getElementById("decrease-btn");
     const increaseBtn = document.getElementById("increase-btn");
@@ -22,12 +22,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// ✅ Añadir productos al carrito y actualizar contador dinámico
 document.addEventListener("DOMContentLoaded", function () {
     const addToCartBtn = document.getElementById("add-to-cart-btn");
     const cantidadInput = document.getElementById("cantidad");
     const goToCartBtnContainer = document.getElementById("go-to-cart-btn-container");
 
-    // Verifica si existe carrito al cargar la página
+    // Verifica si ya hay productos en el carrito
     if (tieneCarrito) {
         mostrarBotonCarrito();
     }
@@ -36,21 +37,21 @@ document.addEventListener("DOMContentLoaded", function () {
     addToCartBtn.addEventListener("click", function (event) {
         event.preventDefault();
 
-        const productoId = addToCartBtn.dataset.productoId; // Obtén el ID del producto
-        const cantidad = parseInt(cantidadInput.value); // Obtén la cantidad seleccionada
+        const productoId = addToCartBtn.dataset.productoId;
+        const cantidad = parseInt(cantidadInput.value);
 
         fetch("/Blyss/carrito/add/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
-                "X-CSRFToken": getCookie("csrftoken") // Incluye el token CSRF
+                "X-CSRFToken": getCookie("csrftoken")
             },
-            body: `producto_id=${productoId}&cantidad=${cantidad}` // Envía el producto y cantidad
+            body: `producto_id=${productoId}&cantidad=${cantidad}`
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Mostrar toast de éxito
+                    // ✅ Mostrar alerta de éxito
                     Swal.fire({
                         toast: true,
                         icon: 'success',
@@ -61,10 +62,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         timerProgressBar: true
                     });
 
-                    // Agregar botón "Ir al Carrito" si no existe
+                    // ✅ Agregar botón "Ir al Carrito"
                     mostrarBotonCarrito();
+
+                    // ✅ Actualizar el contador del carrito dinámicamente
+                    actualizarContadorCarrito();
                 } else {
-                    // Mostrar toast de error
+                    // ✅ Mostrar error si no se pudo agregar
                     Swal.fire({
                         toast: true,
                         icon: 'error',
@@ -78,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => {
                 console.error("Error:", error);
-                // Mostrar toast de error general
+                // ✅ Mostrar error general
                 Swal.fire({
                     toast: true,
                     icon: 'error',
@@ -91,19 +95,19 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
-    // Función para mostrar el botón "Ir al Carrito"
+    // ✅ Mostrar el botón "Ir al Carrito" dinámicamente
     function mostrarBotonCarrito() {
         if (!document.getElementById("go-to-cart-btn")) {
             const goToCartBtn = document.createElement("a");
             goToCartBtn.id = "go-to-cart-btn";
-            goToCartBtn.href = "/Blyss/carrito/"; // URL del carrito
+            goToCartBtn.href = "/Blyss/carrito/";
             goToCartBtn.className = "btn btn-success btn-lg ms-3";
             goToCartBtn.innerHTML = `<i class="bi bi-cart"></i> Ir al Carrito`;
             goToCartBtnContainer.appendChild(goToCartBtn);
         }
     }
 
-    // Función para obtener el token CSRF
+    // ✅ Función para obtener el token CSRF
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -119,3 +123,19 @@ document.addEventListener("DOMContentLoaded", function () {
         return cookieValue;
     }
 });
+
+// ✅ Actualizar dinámicamente el contador del carrito en la barra de navegación
+function actualizarContadorCarrito() {
+    fetch("/Blyss/carrito/total/") // URL de la vista AJAX que obtiene el total de productos
+        .then(response => response.json())
+        .then(data => {
+            const cartCounter = document.getElementById("cart-counter");
+            if (data.total_items > 0) {
+                cartCounter.textContent = data.total_items;
+                cartCounter.style.display = "inline-block";  // Mostrar si hay productos
+            } else {
+                cartCounter.style.display = "none";  // Ocultar si el carrito está vacío
+            }
+        })
+        .catch(error => console.error("Error al actualizar el carrito:", error));
+}

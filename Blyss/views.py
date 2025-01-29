@@ -17,6 +17,7 @@ from django.db.models import F
 import base64
 from django.utils.timezone import now
 from datetime import timedelta
+from django.db.models import Sum
 
 @login_required
 def index(request):
@@ -211,8 +212,19 @@ def obtener_productos(request):
     except:
         return JsonResponse({'productos': [], 'has_next': False, 'has_prev': False})
 
-    productos_data = [
-        {
+    productos_data = []
+    
+    for producto in productos_page:
+        # Obtener la imagen principal en base64
+        imagen_principal = producto.imagenes.filter(EsPrincipal=True).first()
+        if not imagen_principal:
+            imagen_principal = producto.imagenes.order_by('-FechaAgregado').first()
+        
+        imagen_base64 = None
+        if imagen_principal and imagen_principal.Imagen:
+            imagen_base64 = base64.b64encode(imagen_principal.Imagen).decode("utf-8")
+
+        productos_data.append({
             'IdProducto': producto.IdProducto,
             'nombre': producto.Nombre,
             'sku': producto.SKU,
@@ -220,9 +232,8 @@ def obtener_productos(request):
             'precio': producto.Precio,
             'marca': producto.Marca,
             'estado': 'Activo' if producto.Estado else 'Inactivo',
-        }
-        for producto in productos_page
-    ]
+            'imagen': f"data:image/jpeg;base64,{imagen_base64}" if imagen_base64 else None
+        })
 
     return JsonResponse({
         'productos': productos_data,
@@ -320,29 +331,40 @@ def cargar_imagen_view(request, producto_id):
         try:
             producto = get_object_or_404(Productos, pk=producto_id)
 
-            # Verificar el límite de 10 imágenes
-            if ImagenesProducto.objects.filter(IdProducto=producto).count() >= 10:
+            # Verificar el límite de imágenes
+            total_imagenes = ImagenesProducto.objects.filter(IdProducto=producto).count()
+            imagenes_subidas = request.FILES.getlist("imagenes")  # Obtener todas las imágenes enviadas
+
+            if total_imagenes + len(imagenes_subidas) > 10:
                 return JsonResponse({"success": False, "message": "No puedes cargar más de 10 imágenes para este producto."})
 
             # Verificar si ya existe una imagen principal
-            if request.POST.get("es_principal") == "true" and ImagenesProducto.objects.filter(IdProducto=producto, EsPrincipal=True).exists():
-                return JsonResponse({"success": False, "message": "El producto ya tiene una imagen principal."})
+            ya_tiene_principal = ImagenesProducto.objects.filter(IdProducto=producto, EsPrincipal=True).exists()
 
-            # Procesar la imagen cargada
-            imagen = request.FILES.get("imagen")
-            if not imagen:
-                return JsonResponse({"success": False, "message": "Debes seleccionar una imagen."})
+            imagenes_guardadas = []
+            for imagen in imagenes_subidas:
+                es_principal = request.POST.get("es_principal") == "true"
 
-            # Guardar la imagen en la base de datos
-            ImagenesProducto.objects.create(
-                IdProducto=producto,
-                Imagen=imagen.read(),
-                EsPrincipal=request.POST.get("es_principal") == "true",
-            )
+                # Si ya hay una imagen principal, no permitir otra
+                if es_principal and ya_tiene_principal:
+                    continue  
 
-            return JsonResponse({"success": True, "message": "Imagen cargada correctamente."})
-        except ValidationError as e:
-            return JsonResponse({"success": False, "message": str(e)})
+                nueva_imagen = ImagenesProducto.objects.create(
+                    IdProducto=producto,
+                    Imagen=imagen.read(),
+                    EsPrincipal=es_principal,
+                )
+                imagenes_guardadas.append({
+                    "IdImagen": nueva_imagen.IdImagen,
+                    "EsPrincipal": nueva_imagen.EsPrincipal,
+                    "FechaAgregado": nueva_imagen.FechaAgregado.strftime("%d/%m/%Y %H:%M")
+                })
+
+                if es_principal:
+                    ya_tiene_principal = True  # Evitar que se guarden más imágenes principales
+
+            return JsonResponse({"success": True, "message": "Imágenes cargadas correctamente.", "imagenes": imagenes_guardadas})
+
         except Exception as e:
             return JsonResponse({"success": False, "message": str(e)})
 
@@ -838,3 +860,12 @@ def eliminar_del_carrito(request, producto_id):
     carrito_item.delete()
     
     return JsonResponse({'success': True, 'message': 'Producto eliminado del carrito'})
+
+@login_required
+def obtener_total_carrito(request):
+    if request.user.is_authenticated:
+        total_items = Carrito.objects.filter(IdUsuario=request.user).aggregate(total_items=Sum('Cantidad'))['total_items'] or 0
+    else:
+        total_items = 0
+
+    return JsonResponse({'total_items': total_items})

@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let subtotal = 0;
         let totalDescuento = 0;
         let totalPagar = 0;
+        let totalItems = 0;
 
         document.querySelectorAll(".carrito-item").forEach(item => {
             const precioOriginalElement = item.querySelector(".text-decoration-line-through");
@@ -16,16 +17,21 @@ document.addEventListener("DOMContentLoaded", function () {
             subtotal += precioOriginal * cantidad;
             totalPagar += precioDescuento * cantidad;
             totalDescuento += (precioOriginal - precioDescuento) * cantidad;
+            totalItems += cantidad;
         });
 
         document.getElementById("subtotal").textContent = `$${subtotal.toLocaleString()}`;
         document.getElementById("descuento").textContent = `-$${totalDescuento.toLocaleString()}`;
         document.getElementById("total").textContent = `$${totalPagar.toLocaleString()}`;
+
+        // ✅ Actualizar el contador del carrito en la barra de navegación
+        actualizarContadorCarrito(totalItems);
     };
 
+    // ✅ Incrementar la cantidad de productos
     document.querySelectorAll(".increase-btn").forEach(button => {
         button.addEventListener("click", function (event) {
-            event.preventDefault();  // Evita que el formulario se recargue
+            event.preventDefault();
             const input = this.previousElementSibling;
             let cantidad = parseInt(input.value);
             const max = parseInt(input.max);
@@ -46,9 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // ✅ Disminuir la cantidad de productos
     document.querySelectorAll(".decrease-btn").forEach(button => {
         button.addEventListener("click", function (event) {
-            event.preventDefault();  // Evita que el formulario se recargue
+            event.preventDefault();
             const input = this.nextElementSibling;
             let cantidad = parseInt(input.value);
             if (cantidad > 1) {
@@ -58,9 +65,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // ✅ Eliminar un producto del carrito
     document.querySelectorAll(".delete-btn").forEach(button => {
         button.addEventListener("click", function (event) {
-            event.preventDefault();  // Evita que el formulario recargue la página
+            event.preventDefault();
             const productoId = this.getAttribute("data-producto-id");
             const rowElement = this.closest(".carrito-item");
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -115,6 +123,30 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    // ✅ Función para actualizar dinámicamente el contador del carrito
+    function actualizarContadorCarrito(totalItems = null) {
+        if (totalItems === null) {
+            fetch("/Blyss/carrito/total/")
+                .then(response => response.json())
+                .then(data => {
+                    mostrarContador(data.total_items);
+                })
+                .catch(error => console.error("Error al actualizar el carrito:", error));
+        } else {
+            mostrarContador(totalItems);
+        }
+    }
+
+    function mostrarContador(totalItems) {
+        const cartCounter = document.getElementById("cart-counter");
+        if (totalItems > 0) {
+            cartCounter.textContent = totalItems;
+            cartCounter.style.display = "inline-block";
+        } else {
+            cartCounter.style.display = "none";
+        }
+    }
 
     updateTotals();
 });

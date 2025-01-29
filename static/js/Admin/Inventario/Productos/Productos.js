@@ -14,53 +14,62 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(`/Blyss/admin/inventario/obtener-productos/?page=${page}&order_by=${orderBy}&order_direction=${orderDirection}`, {
             method: 'GET',
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.productos && data.productos.length > 0) {
-                    // Vacía la tabla y llena con nuevos datos
-                    productosTableBody.innerHTML = '';
-                    data.productos.forEach(producto => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${producto.nombre}</td>
-                            <td>${producto.sku}</td>
-                            <td>${producto.stock}</td>
-                            <td>${producto.precio}</td>
-                            <td>${producto.marca}</td>
-                            <td class="text-center"><span class="badge ${producto.estado === 'Activo' ? 'bg-success' : 'bg-danger'}">${producto.estado}</span></td>
-                            <td class="text-center">
+        .then(response => response.json())
+        .then(data => {
+            if (data.productos && data.productos.length > 0) {
+                // Vacía la tabla y llena con nuevos datos
+                productosTableBody.innerHTML = '';
+                data.productos.forEach(producto => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="text-center">
+                            <img src="${producto.imagen ? producto.imagen : '/static/img/default-image.webp'}"
+                                class="img-thumbnail rounded"
+                                style="width: 50px; height: 50px; object-fit: cover;">
+                        </td>
+                        <td>
+                            <a href="/Blyss/view/${producto.IdProducto}/" class="text-decoration-none fw-bold text-primary">
+                                ${producto.nombre}
+                            </a>
+                        </td>
+                        <td>${producto.sku}</td>
+                        <td>${producto.stock}</td>
+                        <td>${producto.precio}</td>
+                        <td>${producto.marca}</td>
+                        <td class="text-center"><span class="badge ${producto.estado === 'Activo' ? 'bg-success' : 'bg-danger'}">${producto.estado}</span></td>
+                        <td class="text-center">
                             <a href="/Blyss/admin/inventario/productos/view/${producto.IdProducto}/" class="btn btn-sm btn-info">
                                 <i class="bi bi-info-circle"></i>
                             </a>
-                            </td>
-                        `;
-                        productosTableBody.appendChild(row);
-                    });
-
-                    // Actualiza los controles de paginación
-                    currentPage = data.current_page;
-                    paginationInfo.textContent = `Página ${data.current_page} de ${data.total_pages}`;
-                    prevPageButton.disabled = !data.has_prev;
-                    nextPageButton.disabled = !data.has_next;
-                } else {
-                    productosTableBody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="text-center">No hay productos registrados.</td>
-                        </tr>
+                        </td>
                     `;
-                    paginationInfo.textContent = '';
-                    prevPageButton.disabled = true;
-                    nextPageButton.disabled = true;
-                }
-            })
-            .catch(error => {
-                console.error('Error al cargar los productos:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Hubo un problema al cargar los productos.',
+                    productosTableBody.appendChild(row);
                 });
+
+                // Actualiza los controles de paginación
+                currentPage = data.current_page;
+                paginationInfo.textContent = `Página ${data.current_page} de ${data.total_pages}`;
+                prevPageButton.disabled = !data.has_prev;
+                nextPageButton.disabled = !data.has_next;
+            } else {
+                productosTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center">No hay productos registrados.</td>
+                    </tr>
+                `;
+                paginationInfo.textContent = '';
+                prevPageButton.disabled = true;
+                nextPageButton.disabled = true;
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar los productos:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un problema al cargar los productos.',
             });
+        });
     }
 
     // Listener para las cabeceras de ordenación

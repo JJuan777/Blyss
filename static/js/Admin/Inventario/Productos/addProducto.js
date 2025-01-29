@@ -227,17 +227,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 imageCard.className = "col-md-3 position-relative";
 
                 imageCard.innerHTML = `
-                    <div class="card">
+                    <div class="card shadow-sm">
                         <button 
+                            type="button"
                             class="btn-close position-absolute top-0 end-0 m-2 remove-image" 
                             data-index="${index}" 
                             aria-label="Eliminar"
                         ></button>
-                        <img 
-                            src="${e.target.result}" 
-                            class="card-img-top" 
-                            alt="Imagen seleccionada"
-                        />
+                        <div class="d-flex align-items-center justify-content-center p-2 bg-light" style="height: 180px;">
+                            <img 
+                                src="${e.target.result}" 
+                                class="img-fluid rounded"
+                                alt="Imagen seleccionada"
+                                style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                            />
+                        </div>
                     </div>
                 `;
 

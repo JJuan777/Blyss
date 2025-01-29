@@ -203,45 +203,51 @@ document.addEventListener("DOMContentLoaded", function () {
     const csrfToken = document.querySelector("input[name=csrfmiddlewaretoken]").value;
 
     if (uploadForm) {
-        // Extraer el ID del producto del atributo `data-product-id`
         const productoId = uploadForm.getAttribute("data-product-id");
-        console.log(`ID del producto: ${productoId}`); // Imprimir en consola para depuración
+        // console.log(`ID del producto: ${productoId}`); // Debugging
 
-        // Manejar la carga de imágenes
         uploadForm.addEventListener("submit", function (event) {
             event.preventDefault();
 
             const formData = new FormData();
             const fileInput = document.getElementById("imagen-input");
             const isPrincipal = document.getElementById("es_principal");
+            const totalImages = document.querySelectorAll(".card-img-top").length;
 
-            // Validar que se seleccionó una imagen
-            if (fileInput.files.length === 0) {
+            // Validar límite de imágenes
+            if (fileInput.files.length + totalImages > 10) {
                 Swal.fire({
                     icon: "error",
-                    title: "Error",
-                    text: "Debes seleccionar una imagen para cargar.",
+                    title: "Límite alcanzado",
+                    text: "No puedes cargar más de 10 imágenes.",
                 });
                 return;
             }
 
-            // Agregar datos al FormData
-            formData.append("imagen", fileInput.files[0]);
+            // Validar que se seleccionó al menos una imagen
+            if (fileInput.files.length === 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Debes seleccionar al menos una imagen para cargar.",
+                });
+                return;
+            }
+
+            // Agregar todas las imágenes seleccionadas al FormData
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append("imagenes", fileInput.files[i]);
+            }
+
             formData.append("es_principal", isPrincipal.checked);
             formData.append("csrfmiddlewaretoken", csrfToken);
-
-            console.log("Datos enviados al servidor:", {
-                productoId: productoId,
-                esPrincipal: isPrincipal.checked,
-                archivo: fileInput.files[0].name,
-            }); // Imprimir detalles de los datos
 
             fetch(`/Blyss/cargar-imagen/${productoId}/`, {
                 method: "POST",
                 body: formData,
             })
-                .then((response) => response.json())
-                .then((data) => {
+                .then(response => response.json())
+                .then(data => {
                     if (data.success) {
                         Swal.fire({
                             icon: "success",
