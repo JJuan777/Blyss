@@ -191,3 +191,35 @@
     max-height: 100%;
     display: block;
 }
+/* IMAGEN CARRITO */
+.image-container {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    height: 120px; /* Altura fija para mantener proporción */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #f8f9fa; /* Fondo claro para estética */
+    border-radius: 8px; /* Bordes redondeados */
+}
+
+.product-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Mantiene proporción sin recortar */
+}
+
+/* DASHBOARD */
+.icon-container {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13, 110, 253, 0.1); /* Azul claro */
+    border-radius: 50%;
+}
+
+.icon-container i {
+    font-size: 2rem;
+}

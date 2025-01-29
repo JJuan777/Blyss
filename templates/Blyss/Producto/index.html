@@ -55,22 +55,25 @@
             </h1>
             <p class="text-muted">SKU: {{ producto.SKU }}</p>
             <p class="text-success fs-2 fw-bold d-flex flex-column">
-                <!-- Precio actual -->
-                <span>
-                    ${{ producto.Precio|intcomma }}
-                    <span class="badge bg-success ms-2 p-2" style="font-size: 1rem;">En oferta</span>
-                </span>
-            
-                <!-- Precio con descuento y porcentaje -->
-                {% if producto.PrecioDescuento %}
-                    <span class="text-danger fw-normal" style="font-size: 1.2rem; text-decoration: line-through;">
-                        Antes: ${{ producto.PrecioDescuento|intcomma }}
+                <!-- Precio con descuento -->
+                {% if producto.PrecioDescuento and producto.Precio > producto.PrecioDescuento %}
+                    <span class="text-danger fw-bold">
+                        ${{ producto.PrecioDescuento|intcomma }}
+                        <span class="badge bg-success ms-2 p-2" style="font-size: 1rem;">En oferta</span>
+                    </span>
+                    <span class="text-muted fw-normal" style="font-size: 1.2rem; text-decoration: line-through;">
+                        Antes: ${{ producto.Precio|intcomma }}
                     </span>
                     {% if porcentaje_descuento %}
                         <span class="text-danger fw-bold mt-1" style="font-size: 1.2rem;">
                             Ahorra {{ porcentaje_descuento }}%
                         </span>
                     {% endif %}
+                {% else %}
+                    <!-- Si no hay oferta, mostrar solo el precio original -->
+                    <span class="text-dark fw-bold">
+                        ${{ producto.Precio|intcomma }}
+                    </span>
                 {% endif %}
             </p>
                        
@@ -113,8 +116,7 @@
                 <!-- Contenedor para el botón dinámico -->
                 <div id="go-to-cart-btn-container"></div>
             </div>
-
-        </div>        
+        </div>              
         
     </div>
 
@@ -124,34 +126,35 @@
         <div class="d-none d-sm-none d-md-flex row row-cols-md-3 row-cols-lg-4 g-4">
             {% for relacionado in productos_relacionados %}
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        {% if relacionado.imagenes.first %}
-                            <!-- Mostrar la primera imagen si existe -->
-                            <img src="data:image/jpeg;base64,{{ relacionado.imagenes.first.Imagen|b64encode }}" 
-                                class="card-img-top img-fluid" 
-                                alt="{{ relacionado.Nombre }}" 
-                                style="height: 200px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
-                        {% else %}
-                            <!-- Mostrar imagen predeterminada si no hay imágenes -->
-                            <img src="{% static 'img/default-image.webp' %}" 
-                                class="card-img-top img-fluid" 
-                                alt="Imagen predeterminada" 
-                                style="height: 200px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title text-truncate">{{ relacionado.Nombre }}</h5>
-                            <p class="text-success fw-bold">
-                                ${{ relacionado.Precio|intcomma }}
-                                {% if relacionado.PrecioDescuento %}
-                                    <span class="text-decoration-line-through text-danger">${{ relacionado.PrecioDescuento|intcomma }}</span>
-                                {% endif %}
-                            </p>
-                            <a href="{% url 'producto' relacionado.IdProducto %}" class="btn btn-primary btn-sm">Ver producto</a>
+                    <a href="{% url 'producto' relacionado.IdProducto %}" class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm">
+                            {% if relacionado.imagenes.first %}
+                                <!-- Mostrar la primera imagen si existe -->
+                                <img src="data:image/jpeg;base64,{{ relacionado.imagenes.first.Imagen|b64encode }}" 
+                                    class="card-img-top img-fluid" 
+                                    alt="{{ relacionado.Nombre }}" 
+                                    style="height: 200px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
+                            {% else %}
+                                <!-- Mostrar imagen predeterminada si no hay imágenes -->
+                                <img src="{% static 'img/default-image.webp' %}" 
+                                    class="card-img-top img-fluid" 
+                                    alt="Imagen predeterminada" 
+                                    style="height: 200px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate">{{ relacionado.Nombre }}</h5>
+                                <p class="text-success fw-bold">
+                                    ${{ relacionado.Precio|intcomma }}
+                                    {% if relacionado.PrecioDescuento %}
+                                        <span class="text-decoration-line-through text-danger">${{ relacionado.PrecioDescuento|intcomma }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             {% endfor %}
-        </div>              
+        </div>                   
 
         <!-- Vista horizontal en móvil -->
         <div class="d-flex d-md-none overflow-auto">
@@ -189,7 +192,7 @@
 
 </div>
 
-
+<br>
 <script src="{% static 'js/Producto/Producto.js' %}"></script>
 <script src="{% static 'js/Producto/addFavoritos.js' %}"></script>
 

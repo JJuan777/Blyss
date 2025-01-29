@@ -1,6 +1,6 @@
 {% extends 'layouts/layoutHome.html' %}
 {% load static %}
-
+{% load humanize %}
 {% block title %}Inventario{% endblock %}
 
 {% block content %}
@@ -65,9 +65,9 @@
                 <!-- Encabezado -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="h2">Dashboard</h1>
-                    <button class="btn btn-primary">
+                    <!-- <button class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i> Añadir Registro
-                    </button>
+                    </button> -->
                 </div>
                 
                 <!-- Bienvenida -->
@@ -76,23 +76,43 @@
                 <!-- Tarjetas de métricas clave -->
                 <div class="row g-4">
                     <div class="col-md-6 col-lg-3">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">Productos Totales</h5>
-                                <p class="card-text fs-4 fw-bold">1,254</p>
-                                <p class="text-muted">Actualizado hace 5 minutos</p>
+                        <div class="card shadow-sm border-0 bg-light">
+                            <div class="card-body d-flex align-items-center">
+                                <!-- Icono -->
+                                <div class="icon-container me-3">
+                                    <i class="bi bi-box-seam text-primary"></i>
+                                </div>
+                                <!-- Contenido -->
+                                <div>
+                                    <h6 class="text-uppercase text-muted mb-1">Productos Totales</h6>
+                                    <h4 class="fw-bold text-dark">{{ total_productos|intcomma }}</h4>
+                                    <p class="text-muted small">
+                                        <i class="bi bi-clock-history"></i> {{ tiempo_transcurrido }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
+                                                        
                     <div class="col-md-6 col-lg-3">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">Categorías</h5>
-                                <p class="card-text fs-4 fw-bold">42</p>
-                                <p class="text-muted">Nuevas: 2</p>
+                        <div class="card shadow-sm border-0 bg-light">
+                            <div class="card-body d-flex align-items-center">
+                                <!-- Icono -->
+                                <div class="icon-container me-3">
+                                    <i class="bi bi-tags text-success"></i>
+                                </div>
+                                <!-- Contenido -->
+                                <div>
+                                    <h6 class="text-uppercase text-muted mb-1">Categorías</h6>
+                                    <h4 class="fw-bold text-dark">{{ total_categorias|intcomma }}</h4>
+                                    <p class="text-muted small">
+                                        <i class="bi bi-plus-circle"></i> Nuevas: {{ nuevas_categorias }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    
                     <div class="col-md-6 col-lg-3">
                         <div class="card shadow-sm">
                             <div class="card-body">
@@ -138,9 +158,18 @@
                     <h3>Últimas Actividades</h3>
                     <ul class="list-group">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>Nuevo producto agregado: <strong>Teclado Mecánico RGB</strong></span>
-                            <span class="badge bg-success">Hace 10 minutos</span>
-                        </li>
+                            {% if ultimo_producto %}
+                                <span>
+                                    Nuevo producto agregado: 
+                                    <a href="{% url 'producto' producto_id %}" class="text-decoration-none fw-bold text-dark">
+                                        {{ nombre_producto }}
+                                    </a>
+                                </span>
+                                <span class="badge bg-success">{{ tiempo_transcurrido }}</span>
+                            {% else %}
+                                <span>No hay productos recientes</span>
+                            {% endif %}
+                        </li>                        
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>Proveedor actualizado: <strong>Electro S.A.</strong></span>
                             <span class="badge bg-warning">Hace 30 minutos</span>

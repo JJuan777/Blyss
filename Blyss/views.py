@@ -14,6 +14,9 @@ import json
 from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
 from django.core.paginator import Paginator
 from django.db.models import F
+import base64
+from django.utils.timezone import now
+from datetime import timedelta
 
 @login_required
 def index(request):
@@ -133,7 +136,53 @@ def admin_view(request):
 
 @login_required
 def inventario_view(request):
-    return render(request, 'Blyss/Admin/Inventario/index.html')
+    # Obtener el total de productos
+    total_productos = Productos.objects.count()
+
+    # Obtener el total de categorías
+    total_categorias = CategoriasProductos.objects.values('IdCategoria').distinct().count()
+
+    # Obtener el número de categorías agregadas en los últimos 7 días
+    ultima_semana = now() - timedelta(days=7)
+    nuevas_categorias = CategoriasProductos.objects.filter(IdProducto__FechaAgregado__gte=ultima_semana).values('IdCategoria').distinct().count()
+
+    # Obtener el último producto agregado
+    ultimo_producto = Productos.objects.order_by('-FechaAgregado').first()
+    
+    # Calcular el tiempo transcurrido
+    if ultimo_producto:
+        diferencia_tiempo = now() - ultimo_producto.FechaAgregado
+        if diferencia_tiempo.days > 0:
+            tiempo_transcurrido = f"Hace {diferencia_tiempo.days} días"
+        elif diferencia_tiempo.seconds >= 3600:
+            tiempo_transcurrido = f"Hace {diferencia_tiempo.seconds // 3600} horas"
+        elif diferencia_tiempo.seconds >= 60:
+            tiempo_transcurrido = f"Hace {diferencia_tiempo.seconds // 60} minutos"
+        else:
+            tiempo_transcurrido = "Hace unos segundos"
+
+        # Limitar el nombre del producto a 30 caracteres y agregar "..."
+        nombre_producto = ultimo_producto.Nombre
+        if len(nombre_producto) > 30:
+            nombre_producto = nombre_producto[:30] + "..."
+        
+        producto_id = ultimo_producto.IdProducto  # Obtener el ID del producto
+
+    else:
+        ultimo_producto = None
+        tiempo_transcurrido = "No hay productos recientes"
+        nombre_producto = None
+        producto_id = None  # Evitar errores en la plantilla si no hay productos
+
+    return render(request, 'Blyss/Admin/Inventario/index.html', {
+        'total_productos': total_productos,
+        'total_categorias': total_categorias,
+        'nuevas_categorias': nuevas_categorias,
+        'ultimo_producto': ultimo_producto,
+        'nombre_producto': nombre_producto,
+        'producto_id': producto_id,  # Pasamos el ID al contexto
+        'tiempo_transcurrido': tiempo_transcurrido
+    })
 
 @login_required
 def productos_view(request):
@@ -642,10 +691,10 @@ def producto_view(request, producto_id):
     # Obtén el producto actual
     producto = get_object_or_404(Productos, pk=producto_id)
 
-    # Calcula el porcentaje de descuento si hay un precio de descuento
+    # Calcula el porcentaje de descuento correctamente
     porcentaje_descuento = None
-    if producto.PrecioDescuento and producto.Precio > 0:
-        porcentaje_descuento = round(((producto.PrecioDescuento - producto.Precio) / producto.PrecioDescuento) * 100)
+    if producto.PrecioDescuento and producto.Precio > producto.PrecioDescuento:
+        porcentaje_descuento = round(((producto.Precio - producto.PrecioDescuento) / producto.Precio) * 100)
 
     # Obtén todas las categorías del producto actual
     categorias_ids = list(producto.categorias_productos.values_list('IdCategoria', flat=True))
@@ -743,3 +792,49 @@ def add_to_cart(request):
         return JsonResponse({'success': True, 'message': 'Producto añadido al carrito.'})
 
     return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
+
+@login_required
+def carrito_view(request):
+    usuario = request.user
+    
+    # Obtener los productos en el carrito del usuario junto con su imagen principal
+    carrito_items = Carrito.objects.filter(IdUsuario=usuario).select_related('IdProducto')
+
+    # Calcular subtotal, descuento y total
+    subtotal = sum(item.IdProducto.Precio * item.Cantidad for item in carrito_items)
+    total = sum(item.IdProducto.PrecioDescuento * item.Cantidad for item in carrito_items)
+    descuento_total = subtotal - total
+
+    # Obtener la imagen en base64
+    for item in carrito_items:
+        # Intentar obtener la imagen principal
+        imagen_principal = item.IdProducto.imagenes.filter(EsPrincipal=True).first()
+
+        # Si no hay imagen principal, obtener la imagen más reciente
+        if not imagen_principal:
+            imagen_principal = item.IdProducto.imagenes.order_by('-FechaAgregado').first()
+
+        # Convertir la imagen a base64 si existe
+        if imagen_principal and imagen_principal.Imagen:
+            item.imagen_base64 = base64.b64encode(imagen_principal.Imagen).decode("utf-8")
+        else:
+            item.imagen_base64 = None
+
+    return render(request, 'Blyss/Producto/Carrito.html', {
+        'carrito_items': carrito_items,
+        'subtotal': subtotal,
+        'descuento_total': descuento_total,
+        'total': total,
+    })
+
+@login_required
+def eliminar_del_carrito(request, producto_id):
+    usuario = request.user
+
+    # Buscar el producto en el carrito del usuario
+    carrito_item = get_object_or_404(Carrito, IdUsuario=usuario, IdProducto=producto_id)
+    
+    # Eliminar el producto del carrito
+    carrito_item.delete()
+    
+    return JsonResponse({'success': True, 'message': 'Producto eliminado del carrito'})

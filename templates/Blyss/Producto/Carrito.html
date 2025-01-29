@@ -1,0 +1,99 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}Carrito{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="fw-bold text-center">🛒 Carrito de Compras</h2>
+
+    <div class="row">
+        <!-- Lista de productos en el carrito -->
+        <div class="col-md-8">
+            <div class="card shadow-sm p-3">
+                <h5 class="fw-bold">Productos en tu carrito</h5>
+                <form id="carrito-form" method="post">
+                    {% csrf_token %}
+                    <div id="carrito-items">
+                        {% if carrito_items %}
+                            {% for item in carrito_items %}
+                                <div class="row border-bottom py-3 align-items-center carrito-item" data-producto-id="{{ item.IdProducto.IdProducto }}">
+                                    <!-- Imagen -->
+                                    <div class="col-3 d-flex align-items-center">
+                                        <div class="image-container">
+                                            {% if item.imagen_base64 %}
+                                                <img src="data:image/jpeg;base64,{{ item.imagen_base64 }}" class="img-fluid rounded product-image" alt="{{ item.IdProducto.Nombre }}">
+                                            {% else %}
+                                                <img src="{% static 'img/default-image.webp' %}" class="img-fluid rounded product-image" alt="{{ item.IdProducto.Nombre }}">
+                                            {% endif %}
+                                        </div>
+                                    </div>                                
+
+                                    <!-- Detalles del producto -->
+                                    <div class="col-6">
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'producto' item.IdProducto.IdProducto %}" class="text-decoration-none text-dark">
+                                                {{ item.IdProducto.Nombre }}
+                                            </a>
+                                        </h5>                                    
+                                        <p class="text-muted mb-0">SKU: {{ item.IdProducto.SKU }}</p>
+                                        <p class="fw-bold fs-5">
+                                            <span class="text-danger">${{ item.IdProducto.PrecioDescuento|intcomma }}</span>
+                                            <span class="text-decoration-line-through text-muted ms-2">${{ item.IdProducto.Precio|intcomma }}</span>
+                                        </p>
+                                    </div>
+
+                                    <!-- Cantidad y eliminar -->
+                                    <div class="col-3 d-flex align-items-center">
+                                        <button class="btn btn-outline-secondary btn-sm decrease-btn">-</button>
+                                        <input type="number" class="form-control text-center mx-2 cantidad-input"
+                                            value="{{ item.Cantidad }}" min="1" max="{{ item.IdProducto.Stock }}" readonly>
+                                        <button class="btn btn-outline-secondary btn-sm increase-btn">+</button>
+                                        <button type="button" class="btn btn-danger btn-sm ms-2 delete-btn" data-producto-id="{{ item.IdProducto.IdProducto }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>                                    
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-center text-muted">Tu carrito está vacío 🛍️</p>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resumen del pedido -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5 class="fw-bold">Resumen del pedido</h5>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Subtotal:
+                        <span id="subtotal" class="fw-bold">${{ subtotal|intcomma }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Descuento:
+                        <span id="descuento" class="text-danger">-${{ descuento_total|intcomma }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Envío:
+                        <span id="envio">Gratis</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
+                        Total:
+                        <span id="total">${{ total|intcomma }}</span>
+                    </li>
+                </ul>
+                <button id="checkout-btn" class="btn btn-success w-100">
+                    Proceder al pago <i class="bi bi-credit-card"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/Producto/Carrito.js' %}"></script>
+{% endblock %}
