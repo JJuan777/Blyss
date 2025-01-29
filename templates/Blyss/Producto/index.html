@@ -1,6 +1,7 @@
 {% extends 'layouts/layoutHome.html' %}
 {% load custom_filters %}
 {% load static %}
+{% load humanize %}
 {% block title %}Detalle del Producto{% endblock %}
 
 {% block content %}
@@ -23,17 +24,18 @@
                 <i class="bi bi-chevron-up"></i>
             </button>
 
-                <!-- Contenedor de miniaturas -->
-                <div class="thumbnails-wrapper">
-                    <div class="thumbnails-container" id="thumbnails-container">
-                        {% for imagen in producto.imagenes.all %}
-                            <img src="data:image/jpeg;base64,{{ imagen.Imagen|b64encode }}" 
-                                class="img-thumbnail thumbnail-image" 
-                                data-src="data:image/jpeg;base64,{{ imagen.Imagen|b64encode }}" 
-                                alt="Imagen de {{ producto.Nombre }}">
-                        {% endfor %}
-                    </div>
+            <!-- Contenedor de miniaturas -->
+            <div class="thumbnails-wrapper">
+                <div class="thumbnails-container" id="thumbnails-container">
+                    {% for imagen in producto.imagenes.all %}
+                        <img src="data:image/jpeg;base64,{{ imagen.Imagen|b64encode }}" 
+                            class="img-thumbnail thumbnail-image" 
+                            data-src="data:image/jpeg;base64,{{ imagen.Imagen|b64encode }}" 
+                            alt="Imagen de {{ producto.Nombre }}" 
+                            style="object-fit: contain; max-width: 100%; max-height: 100%; display: block;">
+                    {% endfor %}
                 </div>
+            </div>
 
             <!-- Botón de desplazamiento hacia abajo -->
             <button class="arrow-btn down-arrow mt-2" id="down-arrow">
@@ -52,12 +54,26 @@
                 </button>
             </h1>
             <p class="text-muted">SKU: {{ producto.SKU }}</p>
-            <p class="text-success fs-3 fw-bold">
-                ${{ producto.Precio }}
+            <p class="text-success fs-2 fw-bold d-flex flex-column">
+                <!-- Precio actual -->
+                <span>
+                    ${{ producto.Precio|intcomma }}
+                    <span class="badge bg-success ms-2 p-2" style="font-size: 1rem;">En oferta</span>
+                </span>
+            
+                <!-- Precio con descuento y porcentaje -->
                 {% if producto.PrecioDescuento %}
-                    <span class="text-decoration-line-through text-danger">${{ producto.PrecioDescuento }}</span>
+                    <span class="text-danger fw-normal" style="font-size: 1.2rem; text-decoration: line-through;">
+                        Antes: ${{ producto.PrecioDescuento|intcomma }}
+                    </span>
+                    {% if porcentaje_descuento %}
+                        <span class="text-danger fw-bold mt-1" style="font-size: 1.2rem;">
+                            Ahorra {{ porcentaje_descuento }}%
+                        </span>
+                    {% endif %}
                 {% endif %}
             </p>
+                       
             <p class="text-muted">
                 <strong>Disponible:</strong> {{ producto.Stock }} unidades
             </p>
@@ -114,20 +130,20 @@
                             <img src="data:image/jpeg;base64,{{ relacionado.imagenes.first.Imagen|b64encode }}" 
                                 class="card-img-top img-fluid" 
                                 alt="{{ relacionado.Nombre }}" 
-                                style="max-height: 150px; object-fit: cover;">
+                                style="height: 200px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
                         {% else %}
                             <!-- Mostrar imagen predeterminada si no hay imágenes -->
                             <img src="{% static 'img/default-image.webp' %}" 
                                 class="card-img-top img-fluid" 
                                 alt="Imagen predeterminada" 
-                                style="max-height: 150px; object-fit: cover;">
+                                style="height: 200px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
                         {% endif %}
                         <div class="card-body">
                             <h5 class="card-title text-truncate">{{ relacionado.Nombre }}</h5>
                             <p class="text-success fw-bold">
-                                ${{ relacionado.Precio }}
+                                ${{ relacionado.Precio|intcomma }}
                                 {% if relacionado.PrecioDescuento %}
-                                    <span class="text-decoration-line-through text-danger">${{ relacionado.PrecioDescuento }}</span>
+                                    <span class="text-decoration-line-through text-danger">${{ relacionado.PrecioDescuento|intcomma }}</span>
                                 {% endif %}
                             </p>
                             <a href="{% url 'producto' relacionado.IdProducto %}" class="btn btn-primary btn-sm">Ver producto</a>
@@ -135,7 +151,7 @@
                     </div>
                 </div>
             {% endfor %}
-        </div>
+        </div>              
 
         <!-- Vista horizontal en móvil -->
         <div class="d-flex d-md-none overflow-auto">

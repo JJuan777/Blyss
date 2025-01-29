@@ -176,3 +176,18 @@
     color: white;
     border-color: #007bff;
 }
+/* Img producto */
+.card-img-top {
+    height: 650px;
+    width: 100%;
+    object-fit: contain;
+    background-color: #f8f9fa; /* Cambia el color si es necesario */
+}
+
+/* Img miniatura */
+.thumbnail-image {
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}

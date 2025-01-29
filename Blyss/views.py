@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
 from django.core.paginator import Paginator
+from django.db.models import F
 
 @login_required
 def index(request):
@@ -641,6 +642,11 @@ def producto_view(request, producto_id):
     # Obtén el producto actual
     producto = get_object_or_404(Productos, pk=producto_id)
 
+    # Calcula el porcentaje de descuento si hay un precio de descuento
+    porcentaje_descuento = None
+    if producto.PrecioDescuento and producto.Precio > 0:
+        porcentaje_descuento = round(((producto.PrecioDescuento - producto.Precio) / producto.PrecioDescuento) * 100)
+
     # Obtén todas las categorías del producto actual
     categorias_ids = list(producto.categorias_productos.values_list('IdCategoria', flat=True))
 
@@ -669,6 +675,7 @@ def producto_view(request, producto_id):
     return render(request, 'Blyss/Producto/index.html', {
         'producto': producto,
         'productos_relacionados': productos_relacionados,
+        'porcentaje_descuento': porcentaje_descuento,  # Pasa el porcentaje al contexto
         'en_favoritos': en_favoritos,  # Agrega esta variable al contexto
         'tiene_carrito': tiene_carrito,  # Verificar si el producto está en el carrito
     })
