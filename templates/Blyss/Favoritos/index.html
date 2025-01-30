@@ -1,0 +1,67 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load custom_filters %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Mis Favoritos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">📌 Mis Productos Favoritos</h2>
+    <div class="row">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+        {% for favorito in favoritos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="image-container">
+                    {% with favorito.IdProducto.imagenes.all as imagenes %}
+                        {% if imagenes %}
+                            {% with imagenes|dictsortreversed:"EsPrincipal"|first as imagen %}
+                                {% if not imagen.EsPrincipal %}
+                                    {% with imagenes|dictsortreversed:"FechaAgregado"|first as imagen %}
+                                    {% endwith %}
+                                {% endif %}
+                                <img src="data:image/png;base64,{{ imagen.Imagen|b64encode }}" class="card-img-top product-image" alt="{{ favorito.IdProducto.Nombre }}">
+                            {% endwith %}
+                        {% else %}
+                            <img src="{% static 'images/default-product.jpg' %}" class="card-img-top product-image" alt="Imagen no disponible">
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'producto' favorito.IdProducto.IdProducto %}" class="text-decoration-none text-dark">
+                            {{ favorito.IdProducto.Nombre }}
+                        </a>
+                    </h5>
+                    <p class="card-text text-muted">SKU: {{ favorito.IdProducto.SKU }}</p>
+                    <p class="card-text">
+                        {% if favorito.IdProducto.PrecioDescuento %}
+                            <span class="text-danger fw-bold">${{ favorito.IdProducto.PrecioDescuento|intcomma }}</span>
+                            <span class="text-muted text-decoration-line-through">${{ favorito.IdProducto.Precio|intcomma }}</span>
+                        {% else %}
+                            <span class="fw-bold">${{ favorito.IdProducto.Precio|intcomma }}</span>
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-end">
+                        <button class="favorito-btn border-0 bg-transparent p-2 toggle-favorito"
+                                data-producto-id="{{ favorito.IdProducto.IdProducto }}" 
+                                title="Eliminar de favoritos">
+                            <i class="bi bi-heart-fill text-danger" style="font-size: 2rem;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">No tienes productos favoritos aún.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="{% static 'js/Favoritos/index.js' %}"></script>
+
+{% endblock %}

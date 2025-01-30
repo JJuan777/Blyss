@@ -1,0 +1,30 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load static %}
+
+{% block title %}Búsqueda de Productos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="text-center mb-4">Resultados para: <span id="search-query">"{{ query }}"</span></h2>
+
+        <!-- Selector de Orden -->
+        <select id="order-select" class="form-select w-auto">
+            <option value="asc">Menor Precio</option>
+            <option value="desc">Mayor Precio</option>
+        </select>
+    </div>
+
+    <!-- Contenedor de Productos -->
+    <div id="search-results" class="row mt-3"></div>
+
+    <!-- Loader -->
+    <div id="loading" class="text-center my-3" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/Search/index.js' %}"></script>
+{% endblock %}

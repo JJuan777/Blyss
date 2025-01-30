@@ -18,6 +18,7 @@ import base64
 from django.utils.timezone import now
 from datetime import timedelta
 from django.db.models import Sum
+from django.db.models import Q
 
 @login_required
 def index(request):
@@ -869,3 +870,59 @@ def obtener_total_carrito(request):
         total_items = 0
 
     return JsonResponse({'total_items': total_items})
+
+@login_required
+def favoritos_view(request):
+    favoritos = Favoritos.objects.filter(IdUsuario=request.user).select_related('IdProducto')
+    productos_favoritos = {favorito.IdProducto.IdProducto for favorito in favoritos}  # Conjunto con los IDs de productos favoritos
+
+    productos = Productos.objects.all()  # Obtener todos los productos para mostrarlos en la vista
+
+    return render(request, 'Blyss/Favoritos/index.html', {
+        'favoritos': favoritos,
+        'productos': productos,
+        'productos_favoritos': productos_favoritos
+    })
+
+def search_view(request):
+    query = request.GET.get('q', '')  # Término de búsqueda
+    order = request.GET.get('order', 'asc')  # Ordenar por precio
+    offset = int(request.GET.get('offset', 0))  # Paginación
+    limit = 15  # Número de productos por carga
+
+    productos = Productos.objects.filter(Nombre__icontains=query) if query else []
+
+    # Definir precio final (con o sin descuento)
+    for producto in productos:
+        producto.precio_final = producto.PrecioDescuento if producto.PrecioDescuento and producto.PrecioDescuento > 0 else producto.Precio
+
+    # Ordenar los productos
+    productos = sorted(productos, key=lambda p: p.precio_final, reverse=(order == 'desc'))
+
+    # Aplicar paginación (mostrar `limit` productos por cada solicitud)
+    productos_paginados = productos[offset:offset + limit]
+    hay_mas = len(productos) > offset + limit  # Verifica si hay más productos para cargar
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        productos_data = []
+        for p in productos_paginados:
+            imagen = None
+            if p.imagenes.exists():
+                primera_imagen = p.imagenes.first().Imagen
+                imagen_base64 = base64.b64encode(primera_imagen).decode('utf-8')
+                imagen = f"data:image/png;base64,{imagen_base64}"
+
+            productos_data.append({
+                "id": p.IdProducto,
+                "nombre": p.Nombre,
+                "marca": p.Marca,
+                "precio": float(p.precio_final),
+                 "precio": float(p.Precio),  # Precio original
+                "precio_descuento": float(p.PrecioDescuento) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,  # Solo si hay descuento
+                "porcentaje_descuento": round(100 - (float(p.PrecioDescuento) / float(p.Precio) * 100)) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,
+                "imagen": imagen
+            })
+
+        return JsonResponse({"productos": productos_data, "hay_mas": hay_mas})
+
+    return render(request, 'Blyss/Search/index.html', {'productos': productos_paginados, 'query': query, 'order': order})

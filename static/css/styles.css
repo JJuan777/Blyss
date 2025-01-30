@@ -223,3 +223,12 @@
 .icon-container i {
     font-size: 2rem;
 }
+
+/* FAVORITOS */
+.product-image {
+    width: 100%;
+    height: 200px; /* Fija la altura */
+    object-fit: contain; /* La imagen se ajusta dentro sin recortarse */
+    border-radius: 8px; /* Bordes redondeados */
+    background-color: #f8f9fa; /* Fondo claro para imágenes con transparencia */
+}

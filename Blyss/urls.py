@@ -45,6 +45,10 @@ urlpatterns = [
     path('admin/inventario/subcategorias/view/<int:id>/', views.detsubcategoria_view, name='det_subcategoria'),
     path('admin/inventario/subcategorias/update/<int:id>/', views.updatesubcategoria_view, name='update_subcategoria'),
     path('admin/inventario/subcategorias/delete/<int:id>/', views.deletesubcategoria_view, name='delete_subcategoria'),
+           #Favorites
+    path('favoritos/', views.favoritos_view, name='favoritos'),
+           #Search
+    path('Search/', views.search_view, name='search_view'),
 
 
 ]
