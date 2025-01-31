@@ -49,6 +49,9 @@ urlpatterns = [
     path('favoritos/', views.favoritos_view, name='favoritos'),
            #Search
     path('Search/', views.search_view, name='search_view'),
+           #Categoria
+    path('Categoria/', views.categoria_view, name='categoria_view'),
+    path('Blyss/Categoria/view/<int:id>/', views.detcategoria_view, name='detcategoria_view'),
 
 
 ]

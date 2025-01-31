@@ -1,5 +1,7 @@
 {% extends 'Blyss/Admin/Inventario/index.html' %}
 {% load static %}
+{% load custom_filters %}
+
 {% block dynamic_content %}
 <div class="container-fluid py-4">
     <!-- Encabezado -->
@@ -15,33 +17,57 @@
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0 text-dark" id="editable-nombre">{{ categoria.Nombre }}</h5>
             <button id="edit-toggle" class="btn btn-outline-primary btn-sm" data-id="{{ categoria.IdCategoria }}">
-                <i class="bi bi-pencil"></i> Habilitar Edición
+                <i class="bi bi-pencil"></i> Editar
             </button>
         </div>
-        <div class="card-body">
-            <!-- Descripción -->
-            <div class="mb-4">
-                <h6 class="text-secondary"><i class="bi bi-info-circle"></i> Descripción</h6>
-                <p id="editable-descripcion" class="form-control-plaintext border bg-light p-2 rounded">{{ categoria.Descripcion }}</p>
-            </div>
 
-            <!-- Estado -->
-            <div>
-                <h6 class="text-secondary"><i class="bi bi-toggle-on"></i> Estado</h6>
-                <select id="editable-estado" class="form-select d-inline w-auto" disabled>
-                    <option value="True" {% if categoria.Estado %}selected{% endif %}>Activo</option>
-                    <option value="False" {% if not categoria.Estado %}selected{% endif %}>Inactivo</option>
-                </select>
+        <div class="card-body">
+            <div class="row">
+                <!-- Imagen de la Categoría -->
+                <div class="col-md-4 text-center">
+                    <h6 class="text-secondary"><i class="bi bi-image"></i> Imagen</h6>
+                    <div class="position-relative">
+                        <img id="categoria-imagen" 
+                             src="{% if categoria.Imagen %}data:image/png;base64,{{ categoria.Imagen|b64encode }}{% else %}{% static 'img/default-image.webp' %}{% endif %}" 
+                             alt="{{ categoria.Nombre }}" 
+                             class="img-fluid rounded shadow-sm" 
+                             style="max-width: 100%; height: auto;">
+                        
+                        <!-- Botón para eliminar la imagen -->
+                        <button id="remove-image" class="btn btn-danger btn-sm position-absolute top-0 end-0 d-none">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+
+                    <!-- Input de subida de imagen (oculto por defecto) -->
+                    <input type="file" id="upload-image" class="form-control mt-2 d-none">
+                </div>
+
+                <!-- Información de la Categoría -->
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <h6 class="text-secondary"><i class="bi bi-info-circle"></i> Descripción</h6>
+                        <p id="editable-descripcion" class="form-control-plaintext border bg-light p-2 rounded">{{ categoria.Descripcion }}</p>
+                    </div>
+
+                    <div>
+                        <h6 class="text-secondary"><i class="bi bi-toggle-on"></i> Estado</h6>
+                        <select id="editable-estado" class="form-select w-50" disabled>
+                            <option value="True" {% if categoria.Estado %}selected{% endif %}>Activo</option>
+                            <option value="False" {% if not categoria.Estado %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Botones de acción -->
-    <div class="d-flex justify-content-between mt-4">
-        <button id="delete-category" class="btn btn-danger btn-sm">
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <button id="delete-category" class="btn btn-danger">
             <i class="bi bi-trash"></i> Eliminar Categoría
         </button>
-        <button id="save-changes" class="btn btn-success btn-sm d-none">
+        <button id="save-changes" class="btn btn-success d-none">
             <i class="bi bi-save"></i> Guardar Cambios
         </button>
     </div>
@@ -49,5 +75,6 @@
     <!-- Token CSRF -->
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 </div>
+
 <script src="{% static 'js/Admin/Inventario/Categorias/detCategoria.js' %}"></script>
 {% endblock %}

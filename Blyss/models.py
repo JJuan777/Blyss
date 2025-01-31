@@ -61,9 +61,24 @@ class Categorias(models.Model):
     Nombre = models.CharField(max_length=100)
     Descripcion = models.CharField(max_length=200)
     Estado = models.BooleanField(default=True)
+    Imagen = models.BinaryField(null=True, blank=True)  # Guardar imagen en formato binario
 
     def __str__(self):
         return self.Nombre
+    
+class BannerCategorias(models.Model):
+    IdBannerCat = models.AutoField(primary_key=True)
+    IdCategoria = models.ForeignKey(Categorias, on_delete=models.CASCADE, related_name="banners")
+    ImagenBanner = models.BinaryField(null=True, blank=True)  # Guardar imagen en binario
+    Estado = models.BooleanField(default=True)  # Activo/Inactivo
+    Orden = models.PositiveIntegerField(default=1)  # Para ordenar los banners
+    FechaCreacion = models.DateTimeField(auto_now_add=True)  # Fecha de creación automática
+
+    def __str__(self):
+        return f"Banner de {self.IdCategoria.Nombre} (Orden {self.Orden})"
+
+    class Meta:
+        ordering = ['Orden']  # Ordenar por número de orden ascendente
     
 class Subcategorias(models.Model):
     IdSubCategoria = models.AutoField(primary_key=True)
@@ -96,8 +111,8 @@ class Productos(models.Model):
     
 class CategoriasProductos(models.Model):
     IdCategoriaProducto = models.AutoField(primary_key=True)
-    IdProducto = models.ForeignKey(Productos, on_delete=models.CASCADE, related_name="categorias_productos")
-    IdCategoria = models.ForeignKey(Categorias, on_delete=models.CASCADE, related_name="categorias_productos")
+    IdProducto = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name="categorias_productos")
+    IdCategoria = models.ForeignKey('Categorias', on_delete=models.CASCADE, related_name="categorias_productos")
 
     def __str__(self):
         return f"{self.IdProducto.Nombre} - {self.IdCategoria.Nombre}"

@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
+from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito, BannerCategorias
 from django.core.paginator import Paginator
 from django.db.models import F
 import base64
@@ -19,8 +19,8 @@ from django.utils.timezone import now
 from datetime import timedelta
 from django.db.models import Sum
 from django.db.models import Q
+from django.db.models import F, ExpressionWrapper, FloatField
 
-@login_required
 def index(request):
     # Consulta los productos activos
     productos = Productos.objects.filter(Estado=True).order_by('Nombre')  # Solo productos con Estado=True
@@ -494,16 +494,16 @@ def obtener_categorias(request):
 def addcategorias_view(request):
     return render(request, 'Blyss/Admin/Inventario/Categorias/addCategorias.html')
 
-@login_required
 @csrf_exempt
+@login_required
 def addcategoria_view(request):
     if request.method == 'POST':
         try:
-            # Decodifica el cuerpo de la solicitud JSON
-            data = json.loads(request.body)
-            nombre = data.get('nombre', '').strip()
-            descripcion = data.get('descripcion', '').strip()
-            estado = data.get('estado', True)  # Por defecto, estado activo
+            # Obtener datos del formulario
+            nombre = request.POST.get('nombre', '').strip()
+            descripcion = request.POST.get('descripcion', '').strip()
+            estado = request.POST.get('estado', 'True') == 'True'  # Convierte string en booleano
+            imagen = request.FILES.get('imagen', None)  # Obtener archivo de imagen
 
             # Validaciones básicas
             if not nombre:
@@ -513,11 +513,15 @@ def addcategoria_view(request):
             if len(descripcion) > 200:
                 return JsonResponse({'success': False, 'message': 'La descripción no puede exceder los 200 caracteres.'})
 
+            # Guardar la imagen en formato binario
+            imagen_data = imagen.read() if imagen else None
+
             # Crear la categoría
             categoria = Categorias.objects.create(
                 Nombre=nombre,
                 Descripcion=descripcion,
                 Estado=estado,
+                Imagen=imagen_data
             )
 
             return JsonResponse({'success': True, 'message': 'Categoría creada exitosamente.', 'categoria_id': categoria.IdCategoria})
@@ -535,21 +539,21 @@ def detcategoria_view(request, id):
         'categoria': categoria
     })
 
-@login_required
 @csrf_exempt
+@login_required
 def updatecategoria_view(request, id):
     if request.method == 'POST':
         try:
-            # Obtener la categoría
             categoria = Categorias.objects.get(IdCategoria=id)
 
-            # Obtener datos enviados
-            data = json.loads(request.body)
-            nombre = data.get('nombre', '').strip()
-            descripcion = data.get('descripcion', '').strip()
-            estado = data.get('estado', 'True') == 'True'  # Convertir a booleano
+            # Obtener datos del formulario
+            nombre = request.POST.get("nombre", "").strip()
+            descripcion = request.POST.get("descripcion", "").strip()
+            estado = request.POST.get("estado", "True") == "True"
+            imagen = request.FILES.get("imagen", None)
+            eliminar_imagen = request.POST.get("eliminar_imagen", "False") == "True"  # Bandera de eliminación
 
-            # Validar y actualizar
+            # Validaciones
             if not nombre:
                 return JsonResponse({'success': False, 'message': 'El nombre es obligatorio.'})
             if len(nombre) > 100:
@@ -557,9 +561,17 @@ def updatecategoria_view(request, id):
             if len(descripcion) > 200:
                 return JsonResponse({'success': False, 'message': 'La descripción no puede exceder los 200 caracteres.'})
 
+            # Actualizar datos
             categoria.Nombre = nombre
             categoria.Descripcion = descripcion
             categoria.Estado = estado
+
+            # Manejo de imágenes
+            if eliminar_imagen:
+                categoria.Imagen = None  # Eliminar imagen si el usuario la quitó
+            elif imagen:
+                categoria.Imagen = imagen.read()  # Guardar la nueva imagen
+
             categoria.save()
 
             return JsonResponse({'success': True, 'message': 'Categoría actualizada correctamente.'})
@@ -890,7 +902,28 @@ def search_view(request):
     offset = int(request.GET.get('offset', 0))  # Paginación
     limit = 15  # Número de productos por carga
 
-    productos = Productos.objects.filter(Nombre__icontains=query) if query else []
+    productos = []
+
+    if query:
+        # Buscar productos por nombre
+        productos = Productos.objects.filter(Nombre__icontains=query)
+
+        # Buscar categorías y subcategorías relacionadas con el término de búsqueda
+        categorias = Categorias.objects.filter(Nombre__icontains=query)
+        subcategorias = Subcategorias.objects.filter(Nombre__icontains=query)
+
+        # Buscar productos por categoría
+        productos_por_categoria = Productos.objects.filter(
+            categorias_productos__IdCategoria__in=categorias
+        )
+
+        # Buscar productos por subcategoría
+        productos_por_subcategoria = Productos.objects.filter(
+            subcategorias_productos__IdSubcategoria__in=subcategorias
+        )
+
+        # Unir todos los productos en una sola lista sin duplicados
+        productos = productos.union(productos_por_categoria, productos_por_subcategoria)
 
     # Definir precio final (con o sin descuento)
     for producto in productos:
@@ -917,7 +950,7 @@ def search_view(request):
                 "nombre": p.Nombre,
                 "marca": p.Marca,
                 "precio": float(p.precio_final),
-                 "precio": float(p.Precio),  # Precio original
+                "precio_original": float(p.Precio),  # Precio original
                 "precio_descuento": float(p.PrecioDescuento) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,  # Solo si hay descuento
                 "porcentaje_descuento": round(100 - (float(p.PrecioDescuento) / float(p.Precio) * 100)) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,
                 "imagen": imagen
@@ -926,3 +959,32 @@ def search_view(request):
         return JsonResponse({"productos": productos_data, "hay_mas": hay_mas})
 
     return render(request, 'Blyss/Search/index.html', {'productos': productos_paginados, 'query': query, 'order': order})
+
+def categoria_view(request):
+    categorias = Categorias.objects.filter(Estado=True)  # Solo categorías activas
+    return render(request, 'Blyss/Categoria/index.html', {'categorias': categorias})
+
+def detcategoria_view(request, id):
+    categoria = get_object_or_404(Categorias, IdCategoria=id)
+    banners = BannerCategorias.objects.filter(IdCategoria=categoria, Estado=True).order_by('Orden')
+
+    productos = Productos.objects.filter(categorias_productos__IdCategoria=categoria, Estado=True).distinct()
+
+    # Carruseles categorizados
+    carruseles = {
+        "🌟 Mejor Valorados": productos.order_by('-CalificacionPromedio')[:10],
+        "🔥 Más Vistos": productos.order_by('-Vistas')[:10],
+        "🆕 Más Recientes": productos.order_by('-FechaAgregado')[:10],
+        "💰 En Oferta": productos.filter(PrecioDescuento__isnull=False).order_by('-PrecioDescuento')[:10],
+        "📉 Precio Más Bajo": productos.order_by('Precio')[:10],
+        "🎯 Mayor Descuento": productos.filter(PrecioDescuento__isnull=False).annotate(
+            porcentaje_descuento=ExpressionWrapper((1 - (F('PrecioDescuento') / F('Precio'))) * 100, output_field=FloatField())
+        ).order_by('-porcentaje_descuento')[:10]
+    }
+
+    return render(request, 'Blyss/Categoria/detCategoria.html', {
+        'categoria': categoria,
+        'banners': banners,
+        'carruseles': carruseles
+    })
+

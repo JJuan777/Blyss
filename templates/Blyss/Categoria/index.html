@@ -1,0 +1,33 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Categoría{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">🏷️ Categorías</h2>
+    <div class="row justify-content-center">
+        {% for categoria in categorias %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card category-card text-center shadow-sm">
+                    <div class="category-image-container">
+                        <img src="{% if categoria.Imagen %}data:image/png;base64,{{ categoria.Imagen|b64encode }}{% else %}{% static 'img/default-image.webp' %}{% endif %}" 
+                             class="card-img-top category-image" alt="{{ categoria.Nombre }}">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ categoria.Nombre }}</h5>
+                        <a href="{% url 'detcategoria_view' categoria.IdCategoria %}" class="btn btn-primary btn-sm">
+                            Ver más <i class="fas fa-arrow-right"></i>
+                        </a>                        
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center">No hay categorías disponibles.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="{% static 'js/Categoria/index.js' %}"></script>
+{% endblock %}

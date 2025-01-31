@@ -4,30 +4,48 @@ document.addEventListener("DOMContentLoaded", function () {
     const editableNombre = document.getElementById("editable-nombre");
     const editableDescripcion = document.getElementById("editable-descripcion");
     const editableEstado = document.getElementById("editable-estado");
+    const uploadImageInput = document.getElementById("upload-image");
+    const removeImageButton = document.getElementById("remove-image");
+    const categoriaImagen = document.getElementById("categoria-imagen");
+    const deleteButton = document.getElementById("delete-category");
 
-    // Obtener el ID de la categoría
     const categoriaId = editToggleButton.getAttribute("data-id");
-
     let isEditing = false;
+    let imageRemoved = false; // Bandera para saber si se eliminó la imagen
 
-    // Alternar entre habilitar edición y guardar cambios
+    // Habilitar edición
     editToggleButton.addEventListener("click", function () {
-        if (!isEditing) {
-            // Habilitar edición
-            isEditing = true;
-            toggleEditing(true);
+        isEditing = true;
+        toggleEditing(true);
+    });
+
+    // Previsualización de la imagen al seleccionar un archivo
+    uploadImageInput.addEventListener("change", function () {
+        const file = uploadImageInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                categoriaImagen.src = e.target.result;
+                imageRemoved = false; // Reiniciar bandera si se sube una nueva imagen
+            };
+            reader.readAsDataURL(file);
         }
     });
 
-    // Validar entradas al guardar cambios
+    // Eliminar imagen
+    removeImageButton.addEventListener("click", function () {
+        categoriaImagen.src = "/static/img/default-image.webp"; // Imagen por defecto
+        uploadImageInput.value = "";
+        imageRemoved = true; // Marcar imagen como eliminada
+    });
+
+    // Guardar cambios
     saveChangesButton.addEventListener("click", function () {
         const updatedNombre = editableNombre.textContent.trim();
         const updatedDescripcion = editableDescripcion.textContent.trim();
         const updatedEstado = editableEstado.value;
 
-        const isValid = validateInputs(updatedNombre, updatedDescripcion);
-
-        if (!isValid) {
+        if (!validateInputs(updatedNombre, updatedDescripcion)) {
             Swal.fire({
                 icon: "error",
                 title: "Formulario inválido",
@@ -36,78 +54,74 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        const formData = new FormData();
+        formData.append("nombre", updatedNombre);
+        formData.append("descripcion", updatedDescripcion);
+        formData.append("estado", updatedEstado);
+
+        if (uploadImageInput.files[0]) {
+            formData.append("imagen", uploadImageInput.files[0]);
+        } else if (imageRemoved) {
+            formData.append("eliminar_imagen", "True"); // Indicar que la imagen debe eliminarse
+        }
+
         fetch(`/Blyss/admin/inventario/categorias/update/${categoriaId}/`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
             },
-            body: JSON.stringify({
-                nombre: updatedNombre,
-                descripcion: updatedDescripcion,
-                estado: updatedEstado,
-            }),
+            body: formData
         })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Categoría actualizada",
-                        text: "Los cambios se han guardado exitosamente.",
-                    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Categoría actualizada",
+                    text: "Los cambios se han guardado exitosamente.",
+                }).then(() => {
                     toggleEditing(false);
-                } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: data.message || "No se pudo guardar la categoría.",
-                    });
-                }
-            })
-            .catch((error) => {
-                console.error("Error:", error);
+                    location.reload();
+                });
+            } else {
                 Swal.fire({
                     icon: "error",
-                    title: "Error inesperado",
-                    text: "Ocurrió un error al guardar los cambios.",
+                    title: "Error",
+                    text: data.message || "No se pudo guardar la categoría.",
                 });
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error inesperado",
+                text: "Ocurrió un error al guardar los cambios.",
             });
+        });
     });
 
-    // Validación en tiempo real
-    editableNombre.addEventListener("input", () => {
-        validateField(editableNombre, "El nombre es obligatorio y no debe exceder los 100 caracteres.", 100);
-    });
-
-    editableDescripcion.addEventListener("input", () => {
-        validateField(editableDescripcion, "La descripción no debe exceder los 200 caracteres.", 200, false);
-    });
-
-    // Función para alternar entre edición y vista
+    // Alternar edición
     function toggleEditing(enable) {
         isEditing = enable;
-
         editableNombre.contentEditable = enable;
         editableDescripcion.contentEditable = enable;
         editableEstado.disabled = !enable;
+        uploadImageInput.classList.toggle("d-none", !enable);
+        removeImageButton.classList.toggle("d-none", !enable);
+        saveChangesButton.classList.toggle("d-none", !enable);
+        editToggleButton.classList.toggle("d-none", enable);
 
         if (enable) {
-            editToggleButton.classList.add("d-none");
-            saveChangesButton.classList.remove("d-none");
-
             editableNombre.classList.add("border", "border-primary", "rounded", "px-2", "bg-light");
             editableDescripcion.classList.add("border", "border-primary", "rounded", "px-2", "bg-light");
         } else {
-            editToggleButton.classList.remove("d-none");
-            saveChangesButton.classList.add("d-none");
-
             editableNombre.classList.remove("border", "border-primary", "rounded", "px-2", "bg-light");
             editableDescripcion.classList.remove("border", "border-primary", "rounded", "px-2", "bg-light");
         }
     }
 
-    // Validar campos individuales
+    // Validaciones
     function validateField(element, errorMessage, maxLength, required = true) {
         const value = element.textContent.trim();
         if ((required && !value) || value.length > maxLength) {
@@ -118,22 +132,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return true;
     }
 
-    // Validar todos los campos
     function validateInputs(nombre, descripcion) {
         let isValid = true;
-
         if (!validateField(editableNombre, "El nombre es obligatorio y no debe exceder los 100 caracteres.", 100)) {
             isValid = false;
         }
-
         if (!validateField(editableDescripcion, "La descripción no debe exceder los 200 caracteres.", 200, false)) {
             isValid = false;
         }
-
         return isValid;
     }
 
-    // Mostrar error
     function setError(element, message) {
         element.classList.add("border-danger");
         element.classList.remove("border-primary");
@@ -145,7 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Limpiar error
     function clearError(element) {
         element.classList.remove("border-danger");
         element.classList.add("border-primary");
@@ -155,10 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    //Eliminar
-    const deleteButton = document.getElementById("delete-category");
-
-    // Confirmar y eliminar categoría
+    // Eliminar categoría
     deleteButton.addEventListener("click", function () {
         Swal.fire({
             title: "¿Estás seguro?",
@@ -177,41 +182,34 @@ document.addEventListener("DOMContentLoaded", function () {
                         "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
                     },
                 })
-                    .then((response) => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error("No se pudo eliminar la categoría.");
-                    })
-                    .then((data) => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: "success",
-                                title: "Categoría eliminada",
-                                text: "La categoría se ha eliminado correctamente.",
-                                confirmButtonText: "Aceptar",
-                            }).then(() => {
-                                window.location.href = "/Blyss/admin/inventario/categorias/";
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Error",
-                                text: data.message || "No se pudo eliminar la categoría.",
-                            });
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error:", error);
+                .then((response) => response.ok ? response.json() : Promise.reject("No se pudo eliminar la categoría."))
+                .then((data) => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Categoría eliminada",
+                            text: "La categoría se ha eliminado correctamente.",
+                            confirmButtonText: "Aceptar",
+                        }).then(() => {
+                            window.location.href = "/Blyss/admin/inventario/categorias/";
+                        });
+                    } else {
                         Swal.fire({
                             icon: "error",
-                            title: "Error inesperado",
-                            text: "Ocurrió un error al intentar eliminar la categoría.",
+                            title: "Error",
+                            text: data.message || "No se pudo eliminar la categoría.",
                         });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error inesperado",
+                        text: "Ocurrió un error al intentar eliminar la categoría.",
                     });
+                });
             }
         });
     });
-
-
 });

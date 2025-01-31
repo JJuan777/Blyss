@@ -2,39 +2,32 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("#add-categoria-form");
 
     form.addEventListener("submit", function (event) {
-        event.preventDefault(); // Prevenir el envío tradicional del formulario
+        event.preventDefault();
 
-        // Validar el formulario
+        // Validar formulario
         const isValid = validateForm(form);
         if (!isValid) {
             Swal.fire({
                 icon: "error",
                 title: "Formulario inválido",
-                text: "Por favor, corrige los errores en el formulario antes de enviarlo.",
+                text: "Por favor, corrige los errores antes de enviarlo.",
             });
             return;
         }
 
-        // Preparar los datos
+        // Crear FormData para enviar la imagen y demás datos
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
 
         // Enviar la solicitud POST con fetch
         fetch("/Blyss/admin/inventario/add-categoria/", {
             method: "POST",
             headers: {
                 "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-                "Content-Type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: formData,  // Enviar datos como FormData para manejar imágenes
         })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Error en la solicitud");
-                }
-                return response.json();
-            })
-            .then((data) => {
+            .then(response => response.json())
+            .then(data => {
                 if (data.success) {
                     Swal.fire({
                         icon: "success",
@@ -42,23 +35,23 @@ document.addEventListener("DOMContentLoaded", function () {
                         text: "La categoría ha sido creada exitosamente.",
                         confirmButtonText: "Aceptar",
                     }).then(() => {
-                        form.reset(); // Limpiar el formulario
-                        clearAllValidation(form); // Limpiar todas las validaciones
+                        form.reset(); // Limpiar formulario
+                        clearAllValidation(form);
                     });
                 } else {
                     Swal.fire({
                         icon: "error",
                         title: "Error al registrar",
-                        text: data.message || "Ocurrió un error al registrar la categoría.",
+                        text: data.message || "Ocurrió un error.",
                     });
                 }
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error("Error:", error);
                 Swal.fire({
                     icon: "error",
                     title: "Error inesperado",
-                    text: "Ocurrió un error al procesar la solicitud.",
+                    text: "Ocurrió un problema con la solicitud.",
                 });
             });
     });
