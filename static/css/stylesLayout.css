@@ -58,3 +58,17 @@ border: 1px solid #4F78F3; /* Borde azul */
     border-radius: 5px; /* Opcional: Redondea los bordes */
     background-color: #fff; /* Fondo blanco */
 }
+
+/* HOME */
+
+.custom-carousel-btn {
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparente negro */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    transform: translateY(-70%);
+  }
+  .custom-carousel-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }

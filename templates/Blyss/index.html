@@ -1,18 +1,292 @@
 {% extends 'layouts/layoutHome.html' %}
 {% load static %}
-{% block title %}Productos{% endblock %}
+{% load custom_filters %}  <!-- Cargamos los filtros personalizados -->
+
+{% block title %}Home{% endblock %}
 
 {% block content %}
-    <h1>{{ mensaje }}</h1>
-    <ul>
-        {% for producto in productos %}
-            <li>
-                <a href="{% url 'producto' producto.IdProducto %}">
-                    {{ producto.Nombre }}
+  <!-- Carrusel de Banners -->
+  <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      {% for banner in banners %}
+        <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+                class="{% if forloop.first %}active{% endif %}" 
+                aria-current="{% if forloop.first %}true{% endif %}" 
+                aria-label="Slide {{ forloop.counter }}"></button>
+      {% endfor %}
+    </div>
+
+    <div class="carousel-inner">
+      {% for banner in banners %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+          {% if banner.Img %}
+            <img src="data:image/jpeg;base64,{{ banner.Img|b64encode }}" class="d-block w-100 img-fluid" alt="Banner {{ banner.IdBannerHome }}">
+          {% else %}
+            <div class="d-block w-100 bg-secondary text-white d-flex align-items-center justify-content-center" style="height:300px;">
+              Sin imagen disponible
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Siguiente</span>
+    </button>
+  </div>
+
+  <div class="container my-5">
+    <div id="cardsCarousel" class="carousel slide" data-bs-ride="carousel">
+      
+      <!-- Indicadores -->
+      <div class="carousel-indicators">
+        <button type="button" data-bs-target="#cardsCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#cardsCarousel" data-bs-slide-to="1"></button>
+      </div>
+  
+      <!-- Carrusel -->
+      <div class="carousel-inner">
+        
+        <!-- Primera fila de cards -->
+        <div class="carousel-item active">
+          <div class="row justify-content-center">
+            
+            {% if dynamic_product %}
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+              <a href="{% url 'producto' dynamic_product.IdProducto %}" class="text-decoration-none text-dark">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                  <h6 class="fw-bold fs-6 text-primary">✨ ¡Llévate tu favorito! ✨</h6>
+                  {% if descuento %}
+                    <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ descuento }}%</span>
+                  {% endif %}
+                  <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    {% if product_img_base64 %}
+                      <img src="data:image/jpeg;base64,{{ product_img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ dynamic_product.Nombre }}">
+                    {% else %}
+                      <img src="{% static 'img/default-image.webp' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                    {% endif %}
+                  </div>
+                  <p class="text-muted mb-2 text-truncate" style="max-width: 100%;" title="{{ dynamic_product.Nombre }}">{{ dynamic_product.Nombre }}</p>
+                  <p class="fw-bold mb-3 fs-6">
+                    {% if descuento %}
+                      <span class="text-danger">${{ dynamic_product.PrecioDescuento }}</span>
+                      <span class="text-muted text-decoration-line-through">${{ dynamic_product.Precio }}</span>
+                    {% else %}
+                      <span class="fw-bold">${{ dynamic_product.Precio }}</span>
+                    {% endif %}
+                  </p>
+                </div>
+              </a>
+            </div>
+            {% endif %}
+  
+            <!-- Card "Cómpralo de nuevo" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+              <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6 text-dark">🛒 Cómpralo de nuevo</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                  <img src="{% static 'img/compra-nueva.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Repite tu última compra.</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver productos</a>
+              </div>
+            </div>
+  
+            <!-- Card "Menos de $500" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+              <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6">Menos de <span class="text-dark">$500</span></h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                  <img src="{% static 'img/precio-bajo.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Descubre productos con precios bajos.</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Mostrar productos</a>
+              </div>
+            </div>
+  
+            <!-- Card "Lo más vendido" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+              <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6">🔥 Lo más vendido 🔥</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                  <img src="{% static 'img/masvendido2.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Explora los productos más populares del momento.</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Mostrar productos</a>
+              </div>
+            </div>
+  
+          </div>
+        </div>
+  
+        <!-- Segunda fila de cards -->
+        <div class="carousel-item">
+            <div class="row justify-content-center">
+            
+            <!-- Card "Termina tu carrito" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6">🛒 ¡No olvides tu carrito! 🛒</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    <img src="{% static 'img/compra.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Completa tu compra antes de que los productos se agoten.</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Finalizar compra</a>
+                </div>
+            </div>
+        
+            <!-- Card "Categorías" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6">📂 Explora por categorías</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    <img src="{% static 'img/categorias.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Encuentra productos organizados en diferentes categorías para ti.</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver categorías</a>
+                </div> 
+            </div>
+        
+            <!-- Card "Ofertas Relámpago" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6">⚡ Ofertas Relámpago</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    <img src="{% static 'img/ofertasrelampago.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Descuentos por tiempo limitado. ¡Aprovecha antes de que terminen!</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver ofertas</a>
+                </div> 
+            </div>
+        
+            <!-- Card "Productos Mejor Calificados" -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                <h6 class="fw-bold fs-6">⭐ Productos Mejor Calificados</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    <img src="{% static 'img/mejorcalificado.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                </div>
+                <p class="text-muted mb-3">Descubre los productos mejor valorados por los clientes.</p>
+                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver los mejores</a>
+                </div> 
+            </div>
+        
+            </div>
+        </div>  
+  
+      </div>
+  
+      <!-- Controles del carrusel con color personalizado -->
+      <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#cardsCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#cardsCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+  
+    </div>
+  </div>
+  
+    <!-- Carrusel de Productos Recomendados -->
+    <div class="container my-5">
+        <h4 class="text-center fw-bold">🔍 Productos Recomendados</h4>
+        <div id="recomendadosCarousel" class="carousel slide" data-bs-ride="carousel">
+    
+        <!-- Indicadores -->
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#recomendadosCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#recomendadosCarousel" data-bs-slide-to="1"></button>
+        </div>
+    
+        <!-- Carrusel -->
+        <div class="carousel-inner">
+            
+        <!-- Primera fila de productos recomendados -->
+        <div class="carousel-item active">
+            <div class="row justify-content-center">
+            {% for item in productos_recomendados|slice:":4" %}
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <a href="{% url 'producto' item.producto.IdProducto %}" class="text-decoration-none text-dark">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column position-relative">
+                    {% if item.descuento %}
+                    <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ item.descuento }}%</span>
+                    {% endif %}
+                    <h6 class="fw-bold fs-6 text-truncate" title="{{ item.producto.Nombre }}">{{ item.producto.Nombre }}</h6>
+                    <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    {% if item.img_base64 %}
+                        <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ item.producto.Nombre }}">
+                    {% else %}
+                        <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                    {% endif %}
+                    </div>
+                    <p class="text-muted mb-3 fw-bold">
+                    {% if item.producto.PrecioDescuento and item.producto.Precio > item.producto.PrecioDescuento %}
+                        <span class="text-danger">${{ item.producto.PrecioDescuento }}</span>
+                        <span class="text-muted text-decoration-line-through">${{ item.producto.Precio }}</span>
+                    {% else %}
+                        <span class="fw-bold">${{ item.producto.Precio }}</span>
+                    {% endif %}
+                    </p>
+                </div>
                 </a>
-            </li>
-        {% empty %}
-            <li>No hay productos disponibles.</li>
-        {% endfor %}
-    </ul>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Segunda fila de productos recomendados -->
+        <div class="carousel-item">
+            <div class="row justify-content-center">
+            {% for item in productos_recomendados|slice:"4:8" %}
+            <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <a href="{% url 'producto' item.producto.IdProducto %}" class="text-decoration-none text-dark">
+                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column position-relative">
+                    {% if item.descuento %}
+                    <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ item.descuento }}%</span>
+                    {% endif %}
+                    <h6 class="fw-bold fs-6 text-truncate" title="{{ item.producto.Nombre }}">{{ item.producto.Nombre }}</h6>
+                    <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                    {% if item.img_base64 %}
+                        <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ item.producto.Nombre }}">
+                    {% else %}
+                        <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                    {% endif %}
+                    </div>
+                    <p class="text-muted mb-3 fw-bold">
+                    {% if item.producto.PrecioDescuento and item.producto.Precio > item.producto.PrecioDescuento %}
+                        <span class="text-danger">${{ item.producto.PrecioDescuento }}</span>
+                        <span class="text-muted text-decoration-line-through">${{ item.producto.Precio }}</span>
+                    {% else %}
+                        <span class="fw-bold">${{ item.producto.Precio }}</span>
+                    {% endif %}
+                    </p>
+                </div>
+                </a>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    
+    
+    </div>
+  
+      <!-- Controles del carrusel -->
+      <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#recomendadosCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#recomendadosCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+  
+    </div>
+  </div>
+  
+  
+  
+  
 {% endblock %}

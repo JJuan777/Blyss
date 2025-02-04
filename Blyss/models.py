@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.utils import timezone
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, correo, nombre, apellidos, password=None, **extra_fields):
@@ -165,3 +166,31 @@ class Carrito(models.Model):
 
     def __str__(self):
         return f"Carrito - Usuario: {self.IdUsuario.Nombre}, Producto: {self.IdProducto.Nombre}, Cantidad: {self.Cantidad}"
+    
+class BannerHome(models.Model):
+    IdBannerHome = models.AutoField(primary_key=True)
+    Img = models.BinaryField()
+    Estado = models.BooleanField(default=True)
+    EsPrincipal = models.BooleanField(default=False)
+    FechaAgregado = models.DateTimeField(default=timezone.now)
+    IdUsuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, related_name='banners')
+
+    class Meta:
+        verbose_name = "Banner Home"
+        verbose_name_plural = "Banners Home"
+
+    def __str__(self):
+        return f"BannerHome {self.IdBannerHome}"
+    
+class HistorialVistas(models.Model):
+    IdVista = models.AutoField(primary_key=True)
+    Usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)  # Usuario que vio el producto
+    Producto = models.ForeignKey(Productos, on_delete=models.CASCADE)  # Producto visto
+    FechaVista = models.DateTimeField(auto_now_add=True)  # Fecha en que lo vio
+
+    class Meta:
+        verbose_name = "Historial de Vista"
+        verbose_name_plural = "Historial de Vistas"
+
+    def __str__(self):
+        return f"{self.Usuario.Nombre} vio {self.Producto.Nombre} el {self.FechaVista}"

@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito, BannerCategorias
+from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito, BannerCategorias, BannerHome  
 from django.core.paginator import Paginator
 from django.db.models import F
 import base64
@@ -22,12 +22,53 @@ from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, FloatField
 
 def index(request):
-    # Consulta los productos activos
-    productos = Productos.objects.filter(Estado=True).order_by('Nombre')  # Solo productos con Estado=True
-    return render(request, 'Blyss/index.html', {
-        'mensaje': '¡Bienvenido a Blyss!',
-        'productos': productos
-    })
+    # Filtrar banners activos
+    banners = BannerHome.objects.filter(Estado=True)
+
+    # Obtener el último favorito agregado
+    ultimo_favorito = Favoritos.objects.order_by('-FechaAgregado').first()
+    dynamic_product = None
+    product_img_base64 = None
+    descuento = None
+
+    if ultimo_favorito:
+        dynamic_product = ultimo_favorito.IdProducto
+        imagen = dynamic_product.imagenes.filter(EsPrincipal=True).first() or dynamic_product.imagenes.first()
+
+        if imagen:
+            product_img_base64 = imagen.Imagen  # Se pasa sin procesar
+
+        if dynamic_product.PrecioDescuento and dynamic_product.Precio > dynamic_product.PrecioDescuento:
+            descuento = round(100 - (dynamic_product.PrecioDescuento * 100 / dynamic_product.Precio))
+
+    # Obtener productos recomendados y calcular su descuento si aplica
+    productos_recomendados = Productos.objects.filter(Estado=True).order_by('-CalificacionPromedio', '-Vistas')[:8]
+
+    # Obtener imágenes principales antes de pasarlas al contexto
+    productos_con_imagenes = []
+    for producto in productos_recomendados:
+        imagen_producto = producto.imagenes.filter(EsPrincipal=True).first() or producto.imagenes.first()
+        img_base64 = imagen_producto.Imagen if imagen_producto else None
+        
+        # Calcular el porcentaje de descuento si el producto tiene PrecioDescuento
+        descuento_producto = None
+        if producto.PrecioDescuento and producto.Precio > producto.PrecioDescuento:
+            descuento_producto = round(100 - (producto.PrecioDescuento * 100 / producto.Precio))
+
+        productos_con_imagenes.append({
+            'producto': producto,
+            'img_base64': img_base64,
+            'descuento': descuento_producto
+        })
+
+    context = {
+        'banners': banners,
+        'dynamic_product': dynamic_product,
+        'product_img_base64': product_img_base64,
+        'descuento': descuento,
+        'productos_recomendados': productos_con_imagenes,  # Pasamos los productos con imágenes y descuento
+    }
+    return render(request, 'Blyss/index.html', context)
 
 def registro_view(request):
     if request.method == 'POST':
