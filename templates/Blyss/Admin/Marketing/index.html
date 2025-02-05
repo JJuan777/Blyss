@@ -1,0 +1,175 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load static %}
+{% block title %}Marketing{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar bg-light collapse" id="sidebarMenu">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link fs-6 py-3" href="{% url 'marketing_view' %}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-6 py-3" href="{% url 'banners_view' %}">
+                                <i class="bi bi-image"></i> Banners
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-6 py-3" href="{% url 'secciones_view' %}">
+                                <i class="bi bi-layout-text-window"></i> Secciones
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-6 py-3" href="#">
+                                <i class="bi bi-megaphone"></i> Promociones
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-6 py-3" href="#">
+                                <i class="bi bi-bar-chart"></i> Estadísticas
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Toggle button for mobile view -->
+            <button
+                class="btn btn-primary d-md-none mb-3"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#sidebarMenu"
+                aria-controls="sidebarMenu"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <i class="bi bi-list"></i> Menú
+            </button>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 px-lg-6">
+                <div class="container-fluid py-4">
+                    {% block dynamic_content %}
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1 class="h2">Panel de Marketing</h1>
+                    </div>
+                    
+                    <p class="text-muted">Administra banners, imágenes y promociones para mejorar la experiencia del usuario.</p>
+                    
+                    <!-- Tarjetas de métricas -->
+                    <div class="row g-4">
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card shadow-sm border-0 bg-light">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icon-container me-3">
+                                        <i class="bi bi-image text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-uppercase text-muted mb-1">Banners Activos</h6>
+                                        <h4 class="fw-bold text-dark">{{ total_banners }}</h4>
+                                        <p class="text-muted small">
+                                            <i class="bi bi-clock-history"></i> Última actualización: {{ ultima_actualizacion_banners }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card shadow-sm border-0 bg-light">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icon-container me-3">
+                                        <i class="bi bi-megaphone text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-uppercase text-muted mb-1">Promociones Activas</h6>
+                                        <h4 class="fw-bold text-dark">{{ total_promociones }}</h4>
+                                        <p class="text-muted small">
+                                            <i class="bi bi-plus-circle"></i> Nuevas: {{ nuevas_promociones }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">Secciones Personalizadas</h5>
+                                    <p class="card-text fs-4 fw-bold">{{ total_secciones }}</p>
+                                    <p class="text-muted">Última modificación: {{ ultima_modificacion_secciones }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">Impacto Publicitario</h5>
+                                    <p class="card-text fs-4 fw-bold">{{ total_clicks }}</p>
+                                    <p class="text-muted">Clics en banners</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Sección de gráficos -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">Rendimiento de Banners</h5>
+                                    <canvas id="bannersChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">Promociones Más Efectivas</h5>
+                                    <canvas id="promotionsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Últimas Actividades -->
+                    <div class="mt-4">
+                        <h3>Últimas Actividades</h3>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {% if ultimo_banner %}
+                                    <span>
+                                        Nuevo banner añadido: 
+                                        <a href="#" class="text-decoration-none fw-bold text-dark">
+                                            {{ ultimo_banner.Titulo }}
+                                        </a>
+                                    </span>
+                                    <span class="badge bg-success">{{ tiempo_transcurrido_banner }}</span>
+                                {% else %}
+                                    <span>No hay nuevos banners</span>
+                                {% endif %}
+                            </li>                        
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Sección actualizada: <strong>{{ ultima_seccion.Nombre }}</strong></span>
+                                <span class="badge bg-warning">{{ tiempo_transcurrido_seccion }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Promoción activada: <strong>{{ ultima_promocion.Nombre }}</strong></span>
+                                <span class="badge bg-info">{{ tiempo_transcurrido_promocion }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

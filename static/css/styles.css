@@ -287,3 +287,129 @@
 .custom-carousel-control:hover {
     background-color: rgba(0, 0, 0, 0.7);
 }
+
+/* HOME */
+
+.custom-carousel-btn {
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparente negro */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    transform: translateY(-70%);
+  }
+  .custom-carousel-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  /* Card ofertas 2 */
+  
+/* Efecto hover en las imágenes */
+#cardsCarousel .card img {
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+#cardsCarousel .card img:hover {
+    transform: scale(1.05);
+}
+
+.cardBanner {
+display: flex;
+flex-direction: row;
+align-items: center;
+border: none;
+border-radius: 10px;
+overflow: hidden;
+background: #f8f9fa;
+}
+.cardBanner .card-body {
+    flex: 1;
+    padding: 20px;
+}
+.cardBanner img {
+    width: 60%;
+    height: auto;
+    object-fit: cover;
+}
+/* BANNER */
+.fashionBanner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    padding: 20px;
+}
+.fashionBanner .card-body {
+    flex: 1;
+    padding: 20px;
+}
+.fashionBanner img {
+    width: 50%;
+    height: auto;
+    object-fit: cover;
+}
+.fashionBanner a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+/* PROMOS ITEMS BANNER */
+
+.promoCard {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+}
+.promoCard img {
+    width: 100%;
+    border-radius: 10px;
+}
+.promoCard .title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 15px;
+}
+.miniProducts {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+.miniProducts img {
+    width: 60px; /* Tamaño fijo */
+    height: 60px; /* Tamaño fijo */
+    object-fit: contain; /* Mantiene la proporción sin recortar */
+    border-radius: 5px;
+    background-color: #f8f8f8; /* Fondo claro para imágenes transparentes */
+    padding: 5px; /* Agrega espacio para evitar que imágenes sin fondo luzcan cortadas */
+}
+
+/* BANNER HOME */
+
+#bannerCarousel .carousel-inner {
+    width: 1920px;
+    height: 400px;
+    max-width: 100%;
+    margin: auto;
+}
+
+#bannerCarousel .carousel-item {
+    width: 100%;
+    height: 100%;
+}
+
+#bannerCarousel .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

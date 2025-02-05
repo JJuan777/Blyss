@@ -11,7 +11,8 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito, BannerCategorias, BannerHome  
+from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
+from .models import BannersItems, BannerCategorias, BannerHome, OfertasHome
 from django.core.paginator import Paginator
 from django.db.models import F
 import base64
@@ -20,12 +21,13 @@ from datetime import timedelta
 from django.db.models import Sum
 from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, FloatField
+from django.utils import timezone
 
 def index(request):
-    # Filtrar banners activos
-    banners = BannerHome.objects.filter(Estado=True)
+    # 1️⃣ **Banners ordenados: el principal primero, luego por fecha**
+    banners = list(BannerHome.objects.filter(Estado=True).order_by('-EsPrincipal', '-FechaAgregado'))
 
-    # Obtener el último favorito agregado
+    # 2️⃣ **Sección: Último Favorito**
     ultimo_favorito = Favoritos.objects.order_by('-FechaAgregado').first()
     dynamic_product = None
     product_img_base64 = None
@@ -34,23 +36,19 @@ def index(request):
     if ultimo_favorito:
         dynamic_product = ultimo_favorito.IdProducto
         imagen = dynamic_product.imagenes.filter(EsPrincipal=True).first() or dynamic_product.imagenes.first()
-
-        if imagen:
-            product_img_base64 = imagen.Imagen  # Se pasa sin procesar
+        product_img_base64 = imagen.Imagen if imagen else None  # Imagen en base64
 
         if dynamic_product.PrecioDescuento and dynamic_product.Precio > dynamic_product.PrecioDescuento:
             descuento = round(100 - (dynamic_product.PrecioDescuento * 100 / dynamic_product.Precio))
 
-    # Obtener productos recomendados y calcular su descuento si aplica
+    # 3️⃣ **Sección: Productos Recomendados (Calificación + Vistas)**
     productos_recomendados = Productos.objects.filter(Estado=True).order_by('-CalificacionPromedio', '-Vistas')[:8]
-
-    # Obtener imágenes principales antes de pasarlas al contexto
     productos_con_imagenes = []
+
     for producto in productos_recomendados:
-        imagen_producto = producto.imagenes.filter(EsPrincipal=True).first() or producto.imagenes.first()
-        img_base64 = imagen_producto.Imagen if imagen_producto else None
-        
-        # Calcular el porcentaje de descuento si el producto tiene PrecioDescuento
+        img_producto = producto.imagenes.filter(EsPrincipal=True).first() or producto.imagenes.first()
+        img_base64 = img_producto.Imagen if img_producto else None
+
         descuento_producto = None
         if producto.PrecioDescuento and producto.Precio > producto.PrecioDescuento:
             descuento_producto = round(100 - (producto.PrecioDescuento * 100 / producto.Precio))
@@ -61,13 +59,116 @@ def index(request):
             'descuento': descuento_producto
         })
 
+    # 4️⃣ **Sección: Ofertas Destacadas**
+    oferta_principal = OfertasHome.objects.filter(EsPrincipal=True).first()
+    producto_principal = oferta_principal.IdProducto if oferta_principal else None
+    producto_principal_img = None
+    descuento_principal = None
+
+    if producto_principal:
+        img_principal = producto_principal.imagenes.filter(EsPrincipal=True).first() or producto_principal.imagenes.first()
+        producto_principal_img = img_principal.Imagen if img_principal else None
+
+        if producto_principal.PrecioDescuento and producto_principal.Precio > producto_principal.PrecioDescuento:
+            descuento_principal = round(100 - (producto_principal.PrecioDescuento * 100 / producto_principal.Precio))
+
+    # Productos en oferta (excepto el principal)
+    productos_en_oferta = OfertasHome.objects.exclude(IdProducto=producto_principal).order_by('-FechaAgregado')[:8]
+    productos_en_carrusel = []
+
+    for oferta in productos_en_oferta:
+        producto = oferta.IdProducto
+        img_producto = producto.imagenes.filter(EsPrincipal=True).first() or producto.imagenes.first()
+        img_base64 = img_producto.Imagen if img_producto else None
+
+        descuento_producto = None
+        if producto.PrecioDescuento and producto.Precio > producto.PrecioDescuento:
+            descuento_producto = round(100 - (producto.PrecioDescuento * 100 / producto.Precio))
+
+        productos_en_carrusel.append({
+            'producto': producto,
+            'img_base64': img_base64,
+            'descuento': descuento_producto
+        })
+
+    # 5️⃣ **Sección: Basado en tu Carrito**
+    usuario_actual = request.user
+    productos_en_carrito = Carrito.objects.filter(IdUsuario=usuario_actual)
+
+    productos_carrito = []
+    categorias_ids = set()
+    subcategorias_ids = set()
+
+    for item in productos_en_carrito:
+        producto = item.IdProducto
+
+        categorias = CategoriasProductos.objects.filter(IdProducto=producto).values_list('IdCategoria', flat=True)
+        subcategorias = SubcategoriasProductos.objects.filter(IdProducto=producto).values_list('IdSubcategoria', flat=True)
+
+        categorias_ids.update(categorias)
+        subcategorias_ids.update(subcategorias)
+
+    productos_relacionados = Productos.objects.filter(
+        Estado=True,
+        categorias_productos__IdCategoria__in=categorias_ids,
+        subcategorias_productos__IdSubcategoria__in=subcategorias_ids
+    ).exclude(
+        IdProducto__in=productos_en_carrito.values_list('IdProducto', flat=True)
+    ).distinct()[:8]
+
+    for prod in productos_relacionados:
+        img_producto = prod.imagenes.filter(EsPrincipal=True).first() or prod.imagenes.first()
+        img_base64 = img_producto.Imagen if img_producto else None
+
+        descuento_producto = None
+        if prod.PrecioDescuento and prod.Precio > prod.PrecioDescuento:
+            descuento_producto = round(100 - (prod.PrecioDescuento * 100 / prod.Precio))
+
+        productos_carrito.append({
+            'producto': prod,
+            'img_base64': img_base64,
+            'descuento': descuento_producto
+        })
+
+    # 6️⃣ **Sección: Banners Dinámicos**
+    banners_items = BannersItems.objects.order_by('-FechaAgregada')[:3]
+    banners_data = []
+
+    for banner in banners_items:
+        imagen_banner = banner.Imagen if banner.Imagen else None
+        productos = [banner.Producto1, banner.Producto2, banner.Producto3, banner.Producto4]
+
+        productos_info = []
+        for producto in productos:
+            img_producto = producto.imagenes.filter(EsPrincipal=True).first() or producto.imagenes.first()
+            img_base64 = img_producto.Imagen if img_producto else None
+
+            productos_info.append({
+                'producto': producto,
+                'img_base64': img_base64
+            })
+
+        banners_data.append({
+            'titulo': banner.Titulo,
+            'imagen_banner': imagen_banner,
+            'productos': productos_info
+        })
+
+    # **📌 Contexto de la Vista**
     context = {
         'banners': banners,
         'dynamic_product': dynamic_product,
         'product_img_base64': product_img_base64,
         'descuento': descuento,
-        'productos_recomendados': productos_con_imagenes,  # Pasamos los productos con imágenes y descuento
+        'productos_recomendados': productos_con_imagenes,
+        'producto_principal': producto_principal,
+        'producto_principal_img': producto_principal_img,
+        'descuento_principal': descuento_principal,
+        'productos_en_carrusel': productos_en_carrusel,
+        'productos_carrito': productos_carrito,
+        'banners_data': banners_data,  # Sección de banners dinámicos
     }
+
     return render(request, 'Blyss/index.html', context)
 
 def registro_view(request):
@@ -572,7 +673,7 @@ def addcategoria_view(request):
     return JsonResponse({'success': False, 'message': 'Método no permitido.'})
 
 @login_required
-def detcategoria_view(request, id):
+def detcategoria_viewad(request, id):
     # Obtener la categoría o devolver un error 404 si no existe
     categoria = get_object_or_404(Categorias, IdCategoria=id)
 
@@ -1029,3 +1130,236 @@ def detcategoria_view(request, id):
         'carruseles': carruseles
     })
 
+@login_required
+def marketing_view(request):
+    return render(request, 'Blyss/Admin/Marketing/index.html')
+
+@login_required
+def banners_view(request):
+    # Obtener todos los banners activos
+    banners = BannerHome.objects.filter(Estado=True).order_by('-FechaAgregado')
+
+    return render(request, 'Blyss/Admin/Marketing/Banners/index.html', {
+        'banners': banners
+    })
+
+def addbanner_view(request):
+    return render(request, 'Blyss/Admin/Marketing/Banners/addBanner.html')
+
+@csrf_exempt
+def agregar_banner(request):
+    if request.method == "POST" and request.FILES.get("image"):
+        try:
+            # Obtener usuario autenticado o el primer usuario registrado
+            usuario_actual = request.user if request.user.is_authenticated else Usuarios.objects.first()
+
+            # Leer el archivo y almacenarlo en binario
+            imagen_binaria = request.FILES["image"].read()
+
+            # Obtener la URL ingresada en el formulario
+            banner_url = request.POST.get("bannerUrl", "").strip()
+
+            # Verificar si hay algún banner principal registrado
+            existe_principal = BannerHome.objects.filter(EsPrincipal=True).exists()
+
+            # Obtener la selección del usuario en el formulario
+            es_principal = request.POST.get("isPrincipal", "false") == "true"
+
+            # Si el usuario NO seleccionó "Principal" pero NO hay ningún banner principal, lo asignamos como principal automáticamente
+            if not existe_principal:
+                es_principal = True
+
+            # Si el nuevo banner es principal, desactivar el anterior principal (si existe)
+            if es_principal:
+                BannerHome.objects.filter(EsPrincipal=True).update(EsPrincipal=False)
+
+            # Crear nuevo banner con URL
+            nuevo_banner = BannerHome.objects.create(
+                Img=imagen_binaria,
+                Url=banner_url if banner_url else None,  # Guardar la URL si fue proporcionada
+                Estado=True,
+                EsPrincipal=es_principal,  # Se asigna según la lógica anterior
+                FechaAgregado=timezone.now(),
+                IdUsuario=usuario_actual
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": "Banner agregado correctamente.",
+                "banner_id": nuevo_banner.IdBannerHome
+            })
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": f"Error al agregar el banner: {str(e)}"})
+
+    return JsonResponse({"success": False, "error": "No se recibió ninguna imagen."})
+
+
+@csrf_exempt
+def eliminar_banner(request, banner_id):
+    if request.method == "DELETE":
+        try:
+            banner = BannerHome.objects.get(IdBannerHome=banner_id)
+            es_principal = banner.EsPrincipal  # Verificar si es el principal antes de eliminarlo
+
+            banner.delete()
+
+            # Si el banner eliminado era el principal, asignar el más antiguo como nuevo principal
+            if es_principal:
+                banner_mas_antiguo = BannerHome.objects.order_by("FechaAgregado").first()
+                if banner_mas_antiguo:
+                    banner_mas_antiguo.EsPrincipal = True
+                    banner_mas_antiguo.save()
+
+            return JsonResponse({"success": True, "message": "Banner eliminado correctamente."})
+
+        except BannerHome.DoesNotExist:
+            return JsonResponse({"success": False, "message": "El banner no existe."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
+    
+    return JsonResponse({"success": False, "message": "Método no permitido."})
+
+@csrf_exempt
+def hacer_principal_banner(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            banner_id = data.get("banner_id")
+
+            # Desactivar todos los banners principales
+            BannerHome.objects.filter(EsPrincipal=True).update(EsPrincipal=False)
+
+            # Activar el nuevo banner principal
+            BannerHome.objects.filter(IdBannerHome=banner_id).update(EsPrincipal=True)
+
+            return JsonResponse({"success": True, "message": "El banner ha sido actualizado como principal."})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Método no permitido"})
+
+@login_required
+def secciones_view(request):
+    banners_items = BannersItems.objects.all().order_by('-FechaAgregada')
+    return render(request, 'Blyss/Admin/Marketing/Secciones/index.html', {'banners_items': banners_items})
+
+@csrf_exempt
+def eliminar_seccion(request, section_id):
+    if request.method == "DELETE":
+        try:
+            BannersItems.objects.get(IdBannersItems=section_id).delete()
+            return JsonResponse({"success": True, "message": "Sección eliminada correctamente."})
+        except BannersItems.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Sección no encontrada."})
+
+    return JsonResponse({"success": False, "error": "Método no permitido."})
+
+@login_required
+def addseccion_view(request):
+    productos = Productos.objects.filter(Estado=True)  # Filtrar solo los productos activos
+    return render(request, 'Blyss/Admin/Marketing/Secciones/addSeccion.html', {'productos': productos})
+
+@csrf_exempt
+@login_required
+def agregar_seccion(request):
+    if request.method == "POST":
+        try:
+            titulo = request.POST.get("titulo")
+            producto1_id = request.POST.get("producto1")
+            producto2_id = request.POST.get("producto2")
+            producto3_id = request.POST.get("producto3")
+            producto4_id = request.POST.get("producto4")
+            imagen = request.FILES.get("imagen")
+
+            # Validación de campos obligatorios
+            if not titulo or not producto1_id or not producto2_id or not producto3_id or not producto4_id or not imagen:
+                return JsonResponse({"success": False, "error": "Todos los campos son obligatorios."})
+
+            # Obtener usuario actual
+            usuario_actual = request.user
+
+            # Guardar en base de datos
+            nueva_seccion = BannersItems.objects.create(
+                Titulo=titulo,
+                Producto1_id=producto1_id,
+                Producto2_id=producto2_id,
+                Producto3_id=producto3_id,
+                Producto4_id=producto4_id,
+                Imagen=imagen.read(),  # Almacenar la imagen como binario
+                FechaAgregada=timezone.now(),
+                IdUsuario=usuario_actual
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": "Sección agregada correctamente.",
+                "seccion_id": nueva_seccion.IdBannersItems
+            })
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": f"Error al agregar la sección: {str(e)}"})
+
+    return JsonResponse({"success": False, "error": "Método no permitido."})
+
+@login_required
+def detalle_seccion_view(request, id_seccion):
+    # Filtrar solo los productos activos
+    productos = Productos.objects.filter(Estado=True)
+    
+    # Obtener el objeto o mostrar error 404 si no existe
+    seccion = get_object_or_404(BannersItems, IdBannersItems=id_seccion)
+    
+    # Crear el contexto con ambos objetos
+    context = {
+        "seccion": seccion,
+        "productos": productos,
+    }
+    
+    return render(request, 'Blyss/Admin/Marketing/Secciones/detSeccion.html', context)
+
+@csrf_exempt
+def actualizar_seccion(request, id_seccion):
+    if request.method == "POST":
+        try:
+            # Comprobar si la solicitud tiene una imagen
+            if request.FILES.get("imagen"):
+                imagen_archivo = request.FILES["imagen"].read()
+            else:
+                imagen_archivo = None
+
+            # Obtener la sección a actualizar
+            seccion = get_object_or_404(BannersItems, IdBannersItems=id_seccion)
+
+            # Obtener los datos del request (excepto archivos)
+            titulo = request.POST.get("titulo")
+            producto1_id = request.POST.get("producto1")
+            producto2_id = request.POST.get("producto2")
+            producto3_id = request.POST.get("producto3")
+            producto4_id = request.POST.get("producto4")
+
+            # Validar que los productos existan en la BD
+            producto1 = get_object_or_404(Productos, IdProducto=producto1_id)
+            producto2 = get_object_or_404(Productos, IdProducto=producto2_id)
+            producto3 = get_object_or_404(Productos, IdProducto=producto3_id)
+            producto4 = get_object_or_404(Productos, IdProducto=producto4_id)
+
+            # Actualizar los datos de la sección
+            seccion.Titulo = titulo
+            seccion.Producto1 = producto1
+            seccion.Producto2 = producto2
+            seccion.Producto3 = producto3
+            seccion.Producto4 = producto4
+
+            # Si se subió una nueva imagen, actualizarla
+            if imagen_archivo:
+                seccion.Imagen = imagen_archivo
+
+            seccion.save()
+
+            return JsonResponse({"success": True, "message": "Sección actualizada correctamente"})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Método no permitido"})

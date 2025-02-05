@@ -8,35 +8,45 @@
   <!-- Carrusel de Banners -->
   <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
-      {% for banner in banners %}
-        <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
-                class="{% if forloop.first %}active{% endif %}" 
-                aria-current="{% if forloop.first %}true{% endif %}" 
-                aria-label="Slide {{ forloop.counter }}"></button>
-      {% endfor %}
+        {% for banner in banners %}
+            <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+                    class="{% if forloop.first %}active{% endif %}" 
+                    aria-current="{% if forloop.first %}true{% endif %}" 
+                    aria-label="Slide {{ forloop.counter }}"></button>
+        {% endfor %}
     </div>
 
     <div class="carousel-inner">
-      {% for banner in banners %}
-        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-          {% if banner.Img %}
-            <img src="data:image/jpeg;base64,{{ banner.Img|b64encode }}" class="d-block w-100 img-fluid" alt="Banner {{ banner.IdBannerHome }}">
-          {% else %}
-            <div class="d-block w-100 bg-secondary text-white d-flex align-items-center justify-content-center" style="height:300px;">
-              Sin imagen disponible
+        {% for banner in banners %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                {% if banner.Url %}
+                    <a href="{{ banner.Url }}" target="_blank">
+                {% endif %}
+                    {% if banner.Img %}
+                        <img src="data:image/jpeg;base64,{{ banner.Img|b64encode }}" 
+                            class="d-block w-100 img-fluid" 
+                            alt="Banner {{ banner.IdBannerHome }}" 
+                            style="max-height: 400px; object-fit: cover;">
+                    {% else %}
+                        <div class="d-block w-100 bg-secondary text-white d-flex align-items-center justify-content-center" 
+                            style="height:300px;">
+                            Sin imagen disponible
+                        </div>
+                    {% endif %}
+                {% if banner.Url %}
+                    </a>
+                {% endif %}
             </div>
-          {% endif %}
-        </div>
-      {% endfor %}
+        {% endfor %}
     </div>
 
     <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Anterior</span>
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
     </button>
     <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Siguiente</span>
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
     </button>
   </div>
 
@@ -136,20 +146,22 @@
                     <img src="{% static 'img/compra.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
                 </div>
                 <p class="text-muted mb-3">Completa tu compra antes de que los productos se agoten.</p>
-                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Finalizar compra</a>
+                <a href="{% url 'carrito' %}" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Finalizar compra</a>
                 </div>
             </div>
         
             <!-- Card "Categorías" -->
             <div class="col-lg-3 col-md-6 col-12 mb-4">
-                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
-                <h6 class="fw-bold fs-6">📂 Explora por categorías</h6>
-                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
-                    <img src="{% static 'img/categorias.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
-                </div>
-                <p class="text-muted mb-3">Encuentra productos organizados en diferentes categorías para ti.</p>
-                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver categorías</a>
-                </div> 
+              <a href="{% url 'categoria_view' %}" class="text-decoration-none text-dark">
+                  <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                      <h6 class="fw-bold fs-6">📂 Explora por categorías</h6>
+                      <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                          <img src="{% static 'img/categorias.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                      </div>
+                      <p class="text-muted mb-3">Encuentra productos organizados en diferentes categorías para ti.</p>
+                      <a href="{% url 'categoria_view' %}" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver categorías</a>
+                  </div>
+              </a>
             </div>
         
             <!-- Card "Ofertas Relámpago" -->
@@ -285,8 +297,295 @@
   
     </div>
   </div>
+
+  <!-- 2 Secciones de Banners -->
+  <div class="container mt-4">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card cardBanner">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Tablets</h6>
+                    <h4>HASTA 25% DE DESCUENTO</h4>
+                    <a href="#" class="btn btn-primary mt-2">Ver más</a>
+                </div>
+                <img src="{% static 'img/img2.jpg' %}" alt="Tablets">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card cardBanner">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Encuentra</h6>
+                    <h4>RELOJES ÚNICOS Y SOFISTICADOS AQUÍ</h4>
+                    <a href="#" class="btn btn-primary mt-2">Ver más</a>
+                </div>
+                <img src="{% static 'img/img3.jpg' %}" alt="Relojes">
+            </div>
+        </div>
+    </div>
+</div>
   
-  
-  
-  
+  <!-- Sección de Ofertas Destacadas -->
+  <div class="container my-5">
+    <h4 class="text-center fw-bold">🔥 Ofertas Destacadas 🔥</h4>
+    <div class="row justify-content-center align-items-center">
+      
+      <!-- Card del Producto Principal -->
+      {% if producto_principal %}
+      <div class="col-lg-4 col-md-6 col-12 mb-4">
+        <a href="{% url 'producto' producto_principal.IdProducto %}" class="text-decoration-none text-dark">
+          <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column position-relative">
+            <h5 class="fw-bold text-primary">🔥 Oferta del día 🔥</h5>
+            {% if descuento_principal %}
+              <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ descuento_principal }}%</span>
+            {% endif %}
+            <h5 class="fw-bold fs-5 text-truncate" title="{{ producto_principal.Nombre }}">{{ producto_principal.Nombre }}</h5>
+            <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 200px;">
+              {% if producto_principal_img %}
+                <img src="data:image/jpeg;base64,{{ producto_principal_img|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ producto_principal.Nombre }}">
+              {% else %}
+                <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+              {% endif %}
+            </div>
+            <p class="text-muted mb-3 fw-bold">
+              {% if producto_principal.PrecioDescuento and producto_principal.Precio > producto_principal.PrecioDescuento %}
+                <span class="text-danger fs-5">${{ producto_principal.PrecioDescuento }}</span>
+                <span class="text-muted text-decoration-line-through">${{ producto_principal.Precio }}</span>
+              {% else %}
+                <span class="fw-bold fs-5">${{ producto_principal.Precio }}</span>
+              {% endif %}
+            </p>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Carrusel de Otras Ofertas -->
+      <div class="col-lg-8 col-md-6 col-12">
+        <div id="ofertasCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            <button type="button" data-bs-target="#ofertasCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#ofertasCarousel" data-bs-slide-to="1"></button>
+          </div>
+          <div class="carousel-inner">
+            
+            <!-- Primera fila de productos en oferta -->
+            <div class="carousel-item active">
+              <div class="row justify-content-center">
+                {% for item in productos_en_carrusel|slice:":4" %}
+                <div class="col-lg-3 col-md-6 col-12 mb-4">
+                  <a href="{% url 'producto' item.producto.IdProducto %}" class="text-decoration-none text-dark">
+                    <div class="card shadow-sm border-0 text-center p-3 h-100 d-flex flex-column position-relative">
+                      {% if item.descuento %}
+                        <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ item.descuento }}%</span>
+                      {% endif %}
+                      <h6 class="fw-bold fs-6 text-truncate mt-3" title="{{ item.producto.Nombre }}">{{ item.producto.Nombre }}</h6>
+                      <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                        {% if item.img_base64 %}
+                          <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ item.producto.Nombre }}">
+                        {% else %}
+                          <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                        {% endif %}
+                      </div>
+                      <p class="text-muted mb-3 fw-bold">
+                        {% if item.producto.PrecioDescuento and item.producto.Precio > item.producto.PrecioDescuento %}
+                          <span class="text-danger">${{ item.producto.PrecioDescuento }}</span>
+                          <span class="text-muted text-decoration-line-through">${{ item.producto.Precio }}</span>
+                        {% else %}
+                          <span class="fw-bold">${{ item.producto.Precio }}</span>
+                        {% endif %}
+                      </p>
+                    </div>
+                  </a>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Segunda fila de productos en oferta -->
+            <div class="carousel-item">
+              <div class="row justify-content-center">
+                {% for item in productos_en_carrusel|slice:"4:8" %}
+                <div class="col-lg-3 col-md-6 col-12 mb-4">
+                  <a href="{% url 'producto' item.producto.IdProducto %}" class="text-decoration-none text-dark">
+                    <div class="card shadow-sm border-0 text-center p-3 h-100 d-flex flex-column position-relative">
+                      {% if item.descuento %}
+                        <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ item.descuento }}%</span>
+                      {% endif %}
+                      <h6 class="fw-bold fs-6 text-truncate mt-3" title="{{ item.producto.Nombre }}">{{ item.producto.Nombre }}</h6>
+                      <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                        {% if item.img_base64 %}
+                          <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ item.producto.Nombre }}">
+                        {% else %}
+                          <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                        {% endif %}
+                      </div>
+                      <p class="text-muted mb-3 fw-bold">
+                        {% if item.producto.PrecioDescuento and item.producto.Precio > item.producto.PrecioDescuento %}
+                          <span class="text-danger">${{ item.producto.PrecioDescuento }}</span>
+                          <span class="text-muted text-decoration-line-through">${{ item.producto.Precio }}</span>
+                        {% else %}
+                          <span class="fw-bold">${{ item.producto.Precio }}</span>
+                        {% endif %}
+                      </p>
+                    </div>
+                  </a>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Controles del Carrusel -->
+          <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#ofertasCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#ofertasCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
+        
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container mt-4">
+    <div class="row g-3">
+        <div class="col-md-12">
+            <div class="fashionBanner">
+                <img src="{% static 'img/bannergorras.jpg' %}" alt="Gorras">
+                <div class="card-body">
+                    <h6 class="text-uppercase">Tendencias de Moda</h6>
+                    <h4>RENUEVA TU OUTFIT</h4>
+                    <a href="#">Ir a la página &gt;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Sección Basado en tu Carrito -->
+<div class="container my-5">
+  <h4 class="text-center fw-bold">🛒 Basado en tu Carrito 🛒</h4>
+  <div id="carritoRecomendadoCarousel" class="carousel slide" data-bs-ride="carousel">
+    
+    <!-- Indicadores -->
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carritoRecomendadoCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#carritoRecomendadoCarousel" data-bs-slide-to="1"></button>
+    </div>
+
+    <div class="carousel-inner">
+      
+      <!-- Primera fila de productos recomendados -->
+      <div class="carousel-item active">
+        <div class="row justify-content-center">
+          {% for item in productos_carrito|slice:":4" %}
+          <div class="col-lg-3 col-md-6 col-12 mb-4">
+            <a href="{% url 'producto' item.producto.IdProducto %}" class="text-decoration-none text-dark">
+              <div class="card shadow-sm border-0 text-center p-3 h-100 d-flex flex-column position-relative">
+                {% if item.descuento %}
+                  <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ item.descuento }}%</span>
+                {% endif %}
+                <h6 class="fw-bold fs-6 text-truncate mt-3" title="{{ item.producto.Nombre }}">{{ item.producto.Nombre }}</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                  {% if item.img_base64 %}
+                    <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ item.producto.Nombre }}">
+                  {% else %}
+                    <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                  {% endif %}
+                </div>
+                <p class="text-muted mb-3 fw-bold">
+                  {% if item.producto.PrecioDescuento and item.producto.Precio > item.producto.PrecioDescuento %}
+                    <span class="text-danger">${{ item.producto.PrecioDescuento }}</span>
+                    <span class="text-muted text-decoration-line-through">${{ item.producto.Precio }}</span>
+                  {% else %}
+                    <span class="fw-bold">${{ item.producto.Precio }}</span>
+                  {% endif %}
+                </p>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Segunda fila de productos recomendados -->
+      <div class="carousel-item">
+        <div class="row justify-content-center">
+          {% for item in productos_carrito|slice:"4:8" %}
+          <div class="col-lg-3 col-md-6 col-12 mb-4">
+            <a href="{% url 'producto' item.producto.IdProducto %}" class="text-decoration-none text-dark">
+              <div class="card shadow-sm border-0 text-center p-3 h-100 d-flex flex-column position-relative">
+                {% if item.descuento %}
+                  <span class="badge bg-danger position-absolute top-0 start-0 m-2 p-1">-{{ item.descuento }}%</span>
+                {% endif %}
+                <h6 class="fw-bold fs-6 text-truncate mt-3" title="{{ item.producto.Nombre }}">{{ item.producto.Nombre }}</h6>
+                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                  {% if item.img_base64 %}
+                    <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="{{ item.producto.Nombre }}">
+                  {% else %}
+                    <img src="{% static 'img/default-product.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="Imagen no disponible">
+                  {% endif %}
+                </div>
+                <p class="text-muted mb-3 fw-bold">
+                  {% if item.producto.PrecioDescuento and item.producto.Precio > item.producto.PrecioDescuento %}
+                    <span class="text-danger">${{ item.producto.PrecioDescuento }}</span>
+                    <span class="text-muted text-decoration-line-through">${{ item.producto.Precio }}</span>
+                  {% else %}
+                    <span class="fw-bold">${{ item.producto.Precio }}</span>
+                  {% endif %}
+                </p>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Controles del Carrusel -->
+    <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#carritoRecomendadoCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#carritoRecomendadoCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+
+  </div>
+</div>
+
+<!-- Sección de Promociones Dinámicas -->
+<div class="container mt-4">
+  <div class="row g-3">
+      {% for banner in banners_data %}
+      <div class="col-md-4">
+          <div class="promoCard">
+              <div class="title">{{ banner.titulo }}</div>
+              {% if banner.imagen_banner %}
+                  <img src="data:image/jpeg;base64,{{ banner.imagen_banner|b64encode }}" alt="{{ banner.titulo }}">
+              {% else %}
+                  <img src="{% static 'img/default-image.webp' %}" alt="{{ banner.titulo }}">
+              {% endif %}
+              <div class="miniProducts">
+                  {% for item in banner.productos %}
+                      <a href="{% url 'producto' item.producto.IdProducto %}">
+                          {% if item.img_base64 %}
+                              <img src="data:image/jpeg;base64,{{ item.img_base64|b64encode }}" alt="{{ item.producto.Nombre }}">
+                          {% else %}
+                              <img src="{% static 'img/default-image.webp' %}" alt="{{ item.producto.Nombre }}">
+                          {% endif %}
+                      </a>
+                  {% endfor %}
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+  </div>
+</div>
+
+
+<br><br>
 {% endblock %}

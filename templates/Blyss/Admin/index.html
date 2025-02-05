@@ -8,7 +8,7 @@
     <h1 class="text-center mb-4">Panel de Administración</h1>
     <div class="row">
         <!-- Card: Gestión de Inventario -->
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card text-center shadow-sm border-0">
                 <div class="card-body">
                     <i class="bi bi-box-seam fs-1 text-primary"></i>
@@ -19,7 +19,7 @@
             </div>
         </div>
         <!-- Card: Gestión de Usuarios -->
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card text-center shadow-sm border-0">
                 <div class="card-body">
                     <i class="bi bi-people fs-1 text-success"></i>
@@ -30,13 +30,24 @@
             </div>
         </div>
         <!-- Card: Reportes y Analíticas -->
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card text-center shadow-sm border-0">
                 <div class="card-body">
                     <i class="bi bi-graph-up fs-1 text-danger"></i>
                     <h5 class="card-title mt-3">Reportes y Analíticas</h5>
                     <p class="card-text">Genera reportes detallados y analiza métricas clave.</p>
                     <a href="#" class="btn btn-danger">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card: Marketing -->
+        <div class="col-md-3 mb-4">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <i class="bi bi-megaphone fs-1 text-warning"></i>
+                    <h5 class="card-title mt-3">Marketing</h5>
+                    <p class="card-text">Administra banners, imágenes y secciones promocionales.</p>
+                    <a href="{% url 'marketing_view' %}" class="btn btn-warning text-white">Ver detalles</a>
                 </div>
             </div>
         </div>

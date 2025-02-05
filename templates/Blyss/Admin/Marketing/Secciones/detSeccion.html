@@ -1,0 +1,113 @@
+{% extends 'Blyss/Admin/Marketing/index.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center">📌 Detalles de la Sección</h2>
+        <div>
+            <button id="editButton" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button id="saveButton" class="btn btn-success d-none">
+                <i class="bi bi-save"></i> Guardar Cambios
+            </button>
+            <a href="{% url 'secciones_view' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    
+                    <!-- Título de la Sección -->
+                    <h4 class="fw-bold text-center mb-3">
+                        <span id="tituloText">{{ seccion.Titulo }}</span>
+                        <input type="text" id="tituloInput" class="form-control d-none" value="{{ seccion.Titulo }}">
+                    </h4>
+
+                    <!-- Imagen del Banner -->
+                    <h5 class="fw-bold">📸 Imagen del Banner:</h5>
+                    <div class="text-center mb-4">
+                        {% if seccion.Imagen %}
+                            <img id="imagePreview" src="data:image/jpeg;base64,{{ seccion.Imagen|b64encode }}" 
+                                class="img-fluid rounded" style="max-width: 100%; height: auto; object-fit: cover;" 
+                                alt="{{ seccion.Titulo }}">
+                        {% else %}
+                            <div class="text-center mb-4 bg-light p-4 border rounded">
+                                <span class="text-muted">No hay imagen disponible</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Input para subir imagen (oculto inicialmente) -->
+                    <div class="mb-3 d-none" id="imageUploadContainer">
+                        <label for="imageInput" class="form-label">📂 Selecciona una nueva imagen</label>
+                        <input type="file" id="imageInput" class="form-control" accept="image/*">
+                    </div>
+
+                    <!-- Productos Relacionados -->
+                    <h5 class="fw-bold">📦 Productos Relacionados:</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>Producto 1:</strong>
+                            <span class="editable-text">{{ seccion.Producto1.Nombre }}</span>
+                            <select class="form-select d-none editable-select" id="producto1Select">
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}" {% if producto == seccion.Producto1 %}selected{% endif %}>
+                                        {{ producto.Nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Producto 2:</strong>
+                            <span class="editable-text">{{ seccion.Producto2.Nombre }}</span>
+                            <select class="form-select d-none editable-select" id="producto2Select">
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}" {% if producto == seccion.Producto2 %}selected{% endif %}>
+                                        {{ producto.Nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Producto 3:</strong>
+                            <span class="editable-text">{{ seccion.Producto3.Nombre }}</span>
+                            <select class="form-select d-none editable-select" id="producto3Select">
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}" {% if producto == seccion.Producto3 %}selected{% endif %}>
+                                        {{ producto.Nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Producto 4:</strong>
+                            <span class="editable-text">{{ seccion.Producto4.Nombre }}</span>
+                            <select class="form-select d-none editable-select" id="producto4Select">
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}" {% if producto == seccion.Producto4 %}selected{% endif %}>
+                                        {{ producto.Nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </li>
+                    </ul>
+
+                    <!-- Fecha de Creación -->
+                    <p class="text-muted mt-3">📅 Agregado el {{ seccion.FechaAgregada|date:"d M Y" }}</p>
+                    
+                    <input type="hidden" id="seccionId" value="{{ seccion.IdBannersItems }}">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/Admin/Marketing/Secciones/editarseccion.js' %}"></script>
+{% endblock %}

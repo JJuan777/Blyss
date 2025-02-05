@@ -1,0 +1,83 @@
+{% extends 'Blyss/Admin/Marketing/index.html' %}
+{% load static %}
+
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center">➕ Agregar Nueva Sección</h2>
+        <a href="{% url 'secciones_view' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    
+                    <!-- Descripción para el usuario -->
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h5 class="fw-bold">📌 Instrucciones para agregar una sección</h5>
+                        <p>Selecciona un título, 4 productos y sube una imagen destacada para la sección.</p>
+                    </div>
+
+                    <!-- Formulario de subida -->
+                    <form id="seccionForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Título -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Título</label>
+                            <input type="text" id="titulo" name="titulo" class="form-control" required>
+                        </div>
+
+                        <!-- Productos -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Seleccionar Productos</label>
+                            <select id="producto1" name="producto1" class="form-select">
+                                <option value="">Seleccione un producto</option>
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}">{{ producto.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <select id="producto2" name="producto2" class="form-select mt-2">
+                                <option value="">Seleccione un producto</option>
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}">{{ producto.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <select id="producto3" name="producto3" class="form-select mt-2">
+                                <option value="">Seleccione un producto</option>
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}">{{ producto.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <select id="producto4" name="producto4" class="form-select mt-2">
+                                <option value="">Seleccione un producto</option>
+                                {% for producto in productos %}
+                                    <option value="{{ producto.IdProducto }}">{{ producto.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Subir imagen -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Imagen de la Sección</label>
+                            <input type="file" id="imagenInput" name="imagen" class="form-control" accept="image/*" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Guardar Sección
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/Admin/Marketing/Secciones/addSeccion.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'Blyss/Admin/Marketing/index.html' %}
+{% load static %}
+
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center">📢 Añadir Nuevo Banner</h2>
+        <a href="{% url 'banners_view' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>    
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    
+                    <!-- Descripción para el usuario -->
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h5 class="fw-bold">📌 Instrucciones para subir un banner</h5>
+                        <ul class="ps-3">
+                            <li>📸 <strong>Formato recomendado:</strong> JPG, PNG.</li>
+                            <li>📏 <strong>Dimensiones ideales:</strong> 1920x400 píxeles.</li>
+                            <li>📍 <strong>Banners principales:</strong> Si seleccionas "Sí", este banner aparecerá primero en el carrusel de la página de inicio.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Formulario de subida -->
+                    <form id="bannerForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Vista previa del banner -->
+                        <div class="mb-3 text-center">
+                            <label for="imageInput" class="form-label fw-bold">Subir Imagen (1920x400)</label>
+                            <div id="imagePreview" class="border rounded d-flex justify-content-center align-items-center bg-light" 
+                                 style="height: 200px; max-width: 100%;">
+                                <span class="text-muted">Vista previa</span>
+                            </div>
+                            <input type="file" id="imageInput" name="image" class="form-control mt-2" accept="image/*" required>
+                        </div>
+
+                        <!-- Input para la URL -->
+                        <div class="mb-3">
+                            <label for="bannerUrl" class="form-label fw-bold">Enlace del Banner (Opcional)</label>
+                            <input type="url" id="bannerUrl" name="bannerUrl" class="form-control" placeholder="https://ejemplo.com">
+                        </div>
+
+                        <!-- Opción para marcar como principal -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">¿Hacer Principal?</label>
+                            <select id="isPrincipal" name="isPrincipal" class="form-select">
+                                <option value="false" selected>No</option>
+                                <option value="true">Sí</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Subir Banner
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/Admin/Marketing/Banners/addBanner.js' %}"></script>
+{% endblock %}

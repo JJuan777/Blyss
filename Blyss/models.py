@@ -170,6 +170,7 @@ class Carrito(models.Model):
 class BannerHome(models.Model):
     IdBannerHome = models.AutoField(primary_key=True)
     Img = models.BinaryField()
+    Url = models.URLField(max_length=500, blank=True, null=True)  # Nuevo campo para la URL asociada al banner
     Estado = models.BooleanField(default=True)
     EsPrincipal = models.BooleanField(default=False)
     FechaAgregado = models.DateTimeField(default=timezone.now)
@@ -194,3 +195,35 @@ class HistorialVistas(models.Model):
 
     def __str__(self):
         return f"{self.Usuario.Nombre} vio {self.Producto.Nombre} el {self.FechaVista}"
+
+class OfertasHome(models.Model):
+    IdOfertasHome = models.AutoField(primary_key=True)  # Identificador único de la oferta
+    IdProducto = models.ForeignKey(
+        'Productos',  # Relación con el modelo Productos
+        on_delete=models.CASCADE,
+        related_name='ofertas_home'
+    )
+    EsPrincipal = models.BooleanField(default=False)  # Indica si es una oferta destacada
+    FechaAgregado = models.DateTimeField(auto_now_add=True)  # Fecha de creación de la oferta
+
+    def __str__(self):
+        return f"Oferta {self.IdOfertasHome} - Producto {self.IdProducto.Nombre} (Principal: {self.EsPrincipal})"
+
+    class Meta:
+        verbose_name = "Oferta Home"
+        verbose_name_plural = "Ofertas Home"
+        ordering = ['-FechaAgregado']
+
+class BannersItems(models.Model):
+    IdBannersItems = models.AutoField(primary_key=True)  # Identificador único
+    Titulo = models.CharField(max_length=255)  # Título del banner
+    Producto1 = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name='banner_producto1')
+    Producto2 = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name='banner_producto2')
+    Producto3 = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name='banner_producto3')
+    Producto4 = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name='banner_producto4')
+    Imagen = models.BinaryField(null=True, blank=True)  # Imagen del banner en binario (varbinary)
+    FechaAgregada = models.DateTimeField(auto_now_add=True)  # Fecha de creación del banner
+    IdUsuario = models.ForeignKey('Usuarios', on_delete=models.CASCADE, related_name='banners_creados')  # Usuario que creó el banner
+
+    def __str__(self):
+        return f"{self.Titulo} - {self.FechaAgregada.strftime('%Y-%m-%d')}"

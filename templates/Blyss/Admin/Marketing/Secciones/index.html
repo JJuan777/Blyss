@@ -1,0 +1,72 @@
+{% extends 'Blyss/Admin/Marketing/index.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center">📌 Gestión de Secciones</h2>
+        <a href="{% url 'addseccion' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Añadir Sección
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Título</th>
+                    <th>Imagen</th>
+                    <th>Productos</th>
+                    <th>Fecha Agregada</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in banners_items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.Titulo }}</td>
+                    <td>
+                        {% if item.Imagen %}
+                            <img src="data:image/jpeg;base64,{{ item.Imagen|b64encode }}" class="img-thumbnail" width="100" alt="Banner">
+                        {% else %}
+                            <span class="text-muted">Sin imagen</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            <li>{{ item.Producto1.Nombre }}</li>
+                            <li>{{ item.Producto2.Nombre }}</li>
+                            <li>{{ item.Producto3.Nombre }}</li>
+                            <li>{{ item.Producto4.Nombre }}</li>
+                        </ul>
+                    </td>
+                    <td>{{ item.FechaAgregada|date:"d M Y" }}</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
+                            <a href="{% url 'detalle_seccion' item.IdBannersItems %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            
+                            <button class="btn btn-danger btn-sm delete-section" data-id="{{ item.IdBannersItems }}">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No hay secciones registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="{% static 'js/Admin/Marketing/Secciones/eliminarseccion.js' %}"></script>
+{% endblock %}

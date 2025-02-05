@@ -35,7 +35,7 @@ urlpatterns = [
     path('admin/inventario/categorias/add', views.addcategorias_view, name='add_categorias'),
     path('admin/inventario/add-categoria/', views.addcategoria_view, name='add_categoria'),
     path('admin/inventario/categorias/update/<int:id>/', views.updatecategoria_view, name='update_categoria'),
-    path('admin/inventario/categorias/view/<int:id>/', views.detcategoria_view, name='det_categoria'),
+    path('admin/inventario/categorias/view/<int:id>/', views.detcategoria_viewad, name='det_categoria'),
     path('admin/inventario/categorias/delete/<int:id>/', views.deletecategoria_view, name='delete_categoria'),
         #Subcategorias
     path('admin/inventario/subcategorias/', views.subcategorias_view, name='subcategorias'),
@@ -52,6 +52,20 @@ urlpatterns = [
            #Categoria
     path('Categoria/', views.categoria_view, name='categoria_view'),
     path('Blyss/Categoria/view/<int:id>/', views.detcategoria_view, name='detcategoria_view'),
+            #Marketing
+    path('admin/marketing/', views.marketing_view, name='marketing_view'),
+    path('admin/marketing/banners/', views.banners_view, name='banners_view'),
+    path('admin/marketing/banners/add', views.addbanner_view, name='addbanner_view'),
+    path('admin/marketing/banners/agregar/', views.agregar_banner, name='agregar_banner'),
+    path('admin/marketing/banners/eliminar/<int:banner_id>/', views.eliminar_banner, name='eliminar_banner'),
+    path('banners/hacer-principal/', views.hacer_principal_banner, name="hacer_principal_banner"),
+    path('admin/marketing/secciones/', views.secciones_view, name='secciones_view'),
+    path('secciones/eliminar/<int:section_id>/', views.eliminar_seccion, name="eliminar_seccion"),
+    path('admin/marketing/secciones/add', views.addseccion_view, name="addseccion"),
+    path('admin/marketing/secciones/agregar/', views.agregar_seccion, name="agregar_seccion"),
+    path('admin/marketing/secciones/view/<int:id_seccion>/', views.detalle_seccion_view, name="detalle_seccion"),
+    path('admin/marketing/secciones/update/<int:id_seccion>/', views.actualizar_seccion, name="actualizar_seccion"),
 
 
+    
 ]
