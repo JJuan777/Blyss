@@ -167,14 +167,16 @@
         
             <!-- Card "Ofertas Relámpago" -->
             <div class="col-lg-3 col-md-6 col-12 mb-4">
-                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
-                <h6 class="fw-bold fs-6">⚡ Ofertas Relámpago</h6>
-                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
-                    <img src="{% static 'img/ofertasrelampago.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
-                </div>
-                <p class="text-muted mb-3">Descuentos por tiempo limitado. ¡Aprovecha antes de que terminen!</p>
-                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver ofertas</a>
-                </div> 
+              <a href="{% url 'search_view' %}?q=all_on_sale" class="text-decoration-none">
+                  <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                      <h6 class="fw-bold fs-6">⚡ Ofertas Relámpago</h6>
+                      <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                          <img src="{% static 'img/ofertasrelampago.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                      </div>
+                      <p class="text-muted mb-3">Descuentos por tiempo limitado. ¡Aprovecha antes de que terminen!</p>
+                      <div class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver ofertas</div>
+                  </div>
+              </a>
             </div>
         
             <!-- Card "Productos Mejor Calificados" -->

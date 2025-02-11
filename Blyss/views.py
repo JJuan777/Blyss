@@ -1038,7 +1038,6 @@ def favoritos_view(request):
         'productos_favoritos': productos_favoritos
     })
 
-
 def search_view(request):
     query = request.GET.get('q', '')  
     order = request.GET.get('order', 'asc')  
@@ -1047,11 +1046,13 @@ def search_view(request):
     min_price = request.GET.get('min_price')  
     max_price = request.GET.get('max_price')  
     min_rating = request.GET.get('min_rating')  
+    on_sale = request.GET.get('on_sale') == "true"  
 
     productos = []
     categorias_relacionadas = []
     subcategorias_relacionadas = []
 
+    # 🔹 Filtros por query
     if query.lower() == "all":
         productos = list(Productos.objects.filter(Estado=True))
 
@@ -1060,6 +1061,9 @@ def search_view(request):
 
     elif query.lower() == "all_5stars":
         productos = list(Productos.objects.filter(Estado=True, CalificacionPromedio__gte=4.5))
+
+    elif query.lower() == "all_on_sale":
+        productos = list(Productos.objects.filter(Estado=True, PrecioDescuento__gt=0))
 
     elif query:
         productos = list(Productos.objects.filter(Nombre__icontains=query, Estado=True))
@@ -1075,38 +1079,36 @@ def search_view(request):
             subcategorias_productos__IdSubcategoria__in=subcategorias, Estado=True
         ))
 
-        # Unir listas en lugar de usar .union()
         productos = list(set(productos + productos_por_categoria + productos_por_subcategoria))
 
-        # Obtener categorías relacionadas
         categorias_relacionadas = Categorias.objects.filter(
             IdCategoria__in=CategoriasProductos.objects.filter(IdProducto__in=[p.IdProducto for p in productos]).values_list('IdCategoria', flat=True)
         )
 
-        # CORRECCIÓN: Se cambia `IdSubcategoria` por `IdSubCategoria`
         subcategorias_relacionadas = Subcategorias.objects.filter(
             IdSubCategoria__in=SubcategoriasProductos.objects.filter(IdProducto__in=[p.IdProducto for p in productos]).values_list('IdSubcategoria', flat=True)
         )
 
-    # Definir precio final
+    # 🔹 Definir precio final y aplicar filtro de productos en oferta
     for producto in productos:
         producto.precio_final = producto.PrecioDescuento if producto.PrecioDescuento and producto.PrecioDescuento > 0 else producto.Precio
 
-    # Aplicar filtros de precio si no es all500 ni all_5stars
-    if query.lower() not in ["all500", "all_5stars"]:
+    if on_sale and query.lower() != "all_on_sale":
+        productos = [p for p in productos if p.PrecioDescuento and p.PrecioDescuento > 0]
+
+    if query.lower() not in ["all500", "all_5stars", "all_on_sale"]:
         if min_price:
             productos = [p for p in productos if p.precio_final >= float(min_price)]
         if max_price:
             productos = [p for p in productos if p.precio_final <= float(max_price)]
 
-    # Aplicar filtro de calificación mínima si no es all_5stars
     if min_rating and query.lower() != "all_5stars":
         productos = [p for p in productos if p.CalificacionPromedio >= float(min_rating)]
 
-    # Ordenar los productos
-    productos = sorted(productos, key=lambda p: p.precio_final, reverse=(order == 'desc'))
+    # 🔹 Ordenación en Python en lugar de `.order_by('precio_final')`
+    productos.sort(key=lambda p: p.precio_final, reverse=(order == 'desc'))
 
-    # Aplicar paginación
+    # 🔹 Aplicar paginación
     productos_paginados = productos[offset:offset + limit]
     hay_mas = len(productos) > offset + limit  
 

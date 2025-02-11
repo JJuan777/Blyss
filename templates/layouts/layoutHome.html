@@ -110,12 +110,12 @@
                     </span>                    
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item"><a class="nav-link" href="{% url 'categoria_view' %}">Categorías</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Ofertas</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'search_view' %}?q=all_on_sale">Ofertas</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Historial</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Supermercado</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Moda</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Mercado Play</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Vender</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'search_view' %}?q=Teconología">Tecnología</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'search_view' %}?q=Moda">Moda</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Cartera</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'favoritos' %}">Favoritos</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Ayuda</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'admin' %}">Administrador</a></li>
                     </ul>
