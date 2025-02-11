@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
-from .models import BannersItems, BannerCategorias, BannerHome, OfertasHome
+from .models import BannersItems, BannerCategorias, BannerHome, OfertasHome, Direcciones, DireccionesUsuario
 from django.core.paginator import Paginator
 from django.db.models import F
 import base64
@@ -1404,3 +1404,149 @@ def actualizar_seccion(request, id_seccion):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Método no permitido"})
+
+@login_required
+def directorio_view(request):
+    return render(request, 'Blyss/Directorio/index.html')
+
+@login_required
+def obtener_direcciones_usuario(request):
+    usuario = request.user
+    direcciones = DireccionesUsuario.objects.filter(IdUsuario=usuario).select_related('IdDirecciones')
+
+    direcciones_data = [
+        {
+            "id": direccion.IdDirecciones.IdDirecciones,
+            "estado": direccion.IdDirecciones.Estado,
+            "cp": direccion.IdDirecciones.CP,
+            "municipio": direccion.IdDirecciones.Municipio,
+            "ciudad": direccion.IdDirecciones.Ciudad,
+            "colonia": direccion.IdDirecciones.Colonia,
+            "calle": direccion.IdDirecciones.Calle,
+            "numero_exterior": direccion.IdDirecciones.Numero_Exterior,
+            "numero_interior": direccion.IdDirecciones.Numero_Interior or "",
+            "referencias": direccion.IdDirecciones.Referencias or ""
+        }
+        for direccion in direcciones
+    ]
+
+    return JsonResponse({"direcciones": direcciones_data})
+
+@csrf_exempt  # Permite recibir peticiones POST sin CSRF Token (solo para pruebas, en producción usa CSRF)
+def agregar_direccion(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            usuario = request.user  # Usuario autenticado
+
+            # Crear la dirección
+            nueva_direccion = Direcciones.objects.create(
+                Estado=data["estado"],
+                CP=data["cp"],
+                Municipio=data["municipio"],
+                Ciudad=data["ciudad"],
+                Colonia=data["colonia"],
+                Calle=data["calle"],
+                Numero_Exterior=data["numero_exterior"],
+                Numero_Interior=data.get("numero_interior", ""),
+                Referencias=data.get("referencias", "")
+            )
+
+            # Relacionar la dirección con el usuario
+            DireccionesUsuario.objects.create(IdDirecciones=nueva_direccion, IdUsuario=usuario)
+
+            return JsonResponse({"success": True, "message": "Dirección agregada correctamente"})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
+
+@csrf_exempt  # Solo para pruebas, en producción usa CSRF Token
+def actualizar_direccion(request, id_direccion):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+
+            direccion = Direcciones.objects.get(IdDirecciones=id_direccion)
+            direccion.Estado = data["estado"]
+            direccion.CP = data["cp"]
+            direccion.Municipio = data["municipio"]
+            direccion.Ciudad = data["ciudad"]
+            direccion.Colonia = data["colonia"]
+            direccion.Calle = data["calle"]
+            direccion.Numero_Exterior = data["numero_exterior"]
+            direccion.Numero_Interior = data.get("numero_interior", "")
+            direccion.Referencias = data.get("referencias", "")
+            direccion.save()
+
+            return JsonResponse({"success": True, "message": "Dirección actualizada correctamente"})
+
+        except Direcciones.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Dirección no encontrada"})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
+
+def editar_direccion(request, id_direccion):
+    direccion = get_object_or_404(Direcciones, pk=id_direccion)
+    
+    # Si la petición es AJAX, devolver JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            "id": direccion.IdDirecciones,
+            "estado": direccion.Estado,
+            "cp": direccion.CP,
+            "municipio": direccion.Municipio,
+            "ciudad": direccion.Ciudad,
+            "colonia": direccion.Colonia,
+            "calle": direccion.Calle,
+            "numero_exterior": direccion.Numero_Exterior,
+            "numero_interior": direccion.Numero_Interior or "",
+            "referencias": direccion.Referencias or ""
+        })
+
+    # Si es una petición normal, renderizar la plantilla con los datos
+    return render(request, 'Blyss/Directorio/detDireccion.html', {"direccion": direccion})
+
+@csrf_exempt
+def actualizar_direccion(request, id_direccion):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            direccion = get_object_or_404(Direcciones, pk=id_direccion)
+
+            # Actualizar los campos
+            direccion.Estado = data["estado"]
+            direccion.CP = data["cp"]
+            direccion.Municipio = data["municipio"]
+            direccion.Ciudad = data["ciudad"]
+            direccion.Colonia = data["colonia"]
+            direccion.Calle = data["calle"]
+            direccion.Numero_Exterior = data["numero_exterior"]
+            direccion.Numero_Interior = data.get("numero_interior", "")
+            direccion.Referencias = data.get("referencias", "")
+
+            direccion.save()
+
+            return JsonResponse({"success": True, "message": "Dirección actualizada correctamente"})
+        
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
+
+@csrf_exempt
+def eliminar_direccion(request, id_direccion):
+    if request.method == "DELETE":
+        try:
+            direccion = get_object_or_404(Direcciones, pk=id_direccion)
+            direccion.delete()
+
+            return JsonResponse({"success": True, "message": "Dirección eliminada correctamente"})
+        
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)

@@ -227,3 +227,31 @@ class BannersItems(models.Model):
 
     def __str__(self):
         return f"{self.Titulo} - {self.FechaAgregada.strftime('%Y-%m-%d')}"
+    
+class Direcciones(models.Model):
+    IdDirecciones = models.AutoField(primary_key=True)
+    Estado = models.CharField(max_length=100)
+    CP = models.CharField(max_length=10)
+    Municipio = models.CharField(max_length=100)
+    Ciudad = models.CharField(max_length=100)
+    Colonia = models.CharField(max_length=150)
+    Calle = models.CharField(max_length=150)
+    Numero_Exterior = models.CharField(max_length=10)
+    Numero_Interior = models.CharField(max_length=10, null=True, blank=True)
+    Referencias = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.Calle} #{self.Numero_Exterior}, {self.Colonia}, {self.Ciudad}, {self.Estado} - {self.CP}"
+    
+class DireccionesUsuario(models.Model):
+    IdDireccionUsuario = models.AutoField(primary_key=True)
+    IdDirecciones = models.ForeignKey('Direcciones', on_delete=models.CASCADE, related_name='usuarios_direccion')
+    IdUsuario = models.ForeignKey('Usuarios', on_delete=models.CASCADE, related_name='direcciones_usuario')
+
+    class Meta:
+        verbose_name = 'Dirección de Usuario'
+        verbose_name_plural = 'Direcciones de Usuarios'
+        unique_together = ('IdDirecciones', 'IdUsuario')  # Evita registros duplicados de la misma dirección para el mismo usuario
+
+    def __str__(self):
+        return f"Dirección {self.IdDirecciones_id} - Usuario {self.IdUsuario_id}"

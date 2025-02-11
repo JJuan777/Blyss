@@ -414,6 +414,8 @@ background: #f8f9fa;
     object-fit: cover;
 }
 
-/* SEARCH */
-
-/* ETIQUETAS FILTRO */
+/* MODAL header*/
+.custom-modal-header {
+    background-color: #284CBB;
+    color: white; /* Asegúrate de que el texto sea legible */
+}

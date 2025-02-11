@@ -65,7 +65,13 @@ urlpatterns = [
     path('admin/marketing/secciones/agregar/', views.agregar_seccion, name="agregar_seccion"),
     path('admin/marketing/secciones/view/<int:id_seccion>/', views.detalle_seccion_view, name="detalle_seccion"),
     path('admin/marketing/secciones/update/<int:id_seccion>/', views.actualizar_seccion, name="actualizar_seccion"),
+           #Directorio
+    path('Directorio/', views.directorio_view, name='directorio_view'),
+    path('api/direcciones/', views.obtener_direcciones_usuario, name='obtener_direcciones_usuario'),
+    path('api/agregar_direccion/', views.agregar_direccion, name='agregar_direccion'),
+    path('api/actualizar_direccion/<int:id_direccion>/', views.actualizar_direccion, name='actualizar_direccion'),
+    path('Directorio/view/<int:id_direccion>/', views.editar_direccion, name='editar_direccion'),
+    path('api/actualizar_direccion/<int:id_direccion>/', views.actualizar_direccion, name='actualizar_direccion'),
+    path('api/eliminar_direccion/<int:id_direccion>/', views.eliminar_direccion, name='eliminar_direccion'),
 
-
-    
 ]

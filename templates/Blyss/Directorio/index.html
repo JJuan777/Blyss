@@ -1,0 +1,87 @@
+{% extends 'layouts/layoutHome.html' %}
+{% load static %}
+
+{% block title %}Directorio{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>📍 Mis Direcciones</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaDireccion">
+            <i class="fas fa-plus"></i> Nueva Dirección
+        </button>
+    </div>
+
+    <!-- Aquí se cargarán las direcciones sin afectar los demás elementos -->
+    <div id="direccion-lista" class="mt-3"></div>
+</div>
+
+<!-- Modal de Pantalla Completa -->
+<div class="modal fade" id="modalNuevaDireccion" tabindex="-1" aria-labelledby="modalNuevaDireccionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header custom-modal-header text-white">
+                <h5 class="modal-title" id="modalNuevaDireccionLabel"><i class="fas fa-map-marker-alt"></i>   Nueva Dirección</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <form id="formNuevaDireccion" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="estado" class="form-label">Estado <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="estado" placeholder="Ejemplo: Ciudad de México" required>
+                                <div class="invalid-feedback">El estado es obligatorio.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cp" class="form-label">Código Postal <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="cp" placeholder="Ejemplo: 12345" required pattern="^\d{5}$">
+                                <div class="invalid-feedback">Debe ser un código postal válido de 5 dígitos.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="municipio" class="form-label">Municipio/Delegación <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="municipio" placeholder="Ejemplo: Benito Juárez" required>
+                                <div class="invalid-feedback">El municipio es obligatorio.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="ciudad" placeholder="Ejemplo: Ciudad de México" required>
+                                <div class="invalid-feedback">La ciudad es obligatoria.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="colonia" class="form-label">Colonia <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="colonia" placeholder="Ejemplo: Narvarte" required>
+                                <div class="invalid-feedback">La colonia es obligatoria.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="calle" class="form-label">Calle <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="calle" placeholder="Ejemplo: Av. Insurgentes" required>
+                                <div class="invalid-feedback">La calle es obligatoria.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="numero_exterior" class="form-label">Número Exterior <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="numero_exterior" placeholder="Ejemplo: 123" required>
+                                <div class="invalid-feedback">El número exterior es obligatorio.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="numero_interior" class="form-label">Número Interior</label>
+                                <input type="text" class="form-control" id="numero_interior" placeholder="Opcional">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="referencias" class="form-label">Referencias</label>
+                                <textarea class="form-control" id="referencias" rows="3" placeholder="Ejemplo: Casa blanca con portón negro."></textarea>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar Dirección</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/Directorio/index.js' %}"></script>
+{% endblock %}
