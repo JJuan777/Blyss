@@ -255,3 +255,36 @@ class DireccionesUsuario(models.Model):
 
     def __str__(self):
         return f"Dirección {self.IdDirecciones_id} - Usuario {self.IdUsuario_id}"
+    
+class Pedido(models.Model):
+    IdPedido = models.AutoField(primary_key=True)
+    IdUsuario = models.ForeignKey('Usuarios', on_delete=models.CASCADE, related_name='pedidos')
+    IdDirecciones = models.ForeignKey(Direcciones, on_delete=models.SET_NULL, null=True, blank=True, related_name='pedidos_envio')
+    Estado = models.CharField(max_length=50)  # Ejemplo: "Pendiente", "Pagado", "Enviado"
+    FechaPedido = models.DateTimeField(auto_now_add=True)
+    Total = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"Pedido {self.IdPedido} - Usuario {self.IdUsuario.Nombre} {self.IdUsuario.Apellidos} - Dirección {self.IdDirecciones if self.IdDirecciones else 'No asignada'}"
+
+class DetallePedido(models.Model):
+    IdDetalle = models.AutoField(primary_key=True)
+    IdPedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='detalles')
+    IdProducto = models.ForeignKey('Productos', on_delete=models.CASCADE, related_name='detalles_pedido')
+    Cantidad = models.PositiveIntegerField()
+    PrecioUnitario = models.DecimalField(max_digits=10, decimal_places=2)
+    Subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"Detalle {self.IdDetalle} - Pedido {self.IdPedido.IdPedido} - Producto {self.IdProducto.Nombre}"
+
+class Pago(models.Model):
+    IdPago = models.AutoField(primary_key=True)
+    IdPedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='pagos')
+    Metodo = models.CharField(max_length=50)  # Ejemplo: "Tarjeta", "PayPal", "MercadoPago"
+    FechaPago = models.DateTimeField(auto_now_add=True)
+    Monto = models.DecimalField(max_digits=10, decimal_places=2)
+    TransaccionId = models.CharField(max_length=100, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return f"Pago {self.IdPago} - Pedido {self.IdPedido.IdPedido} - {self.Metodo}"

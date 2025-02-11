@@ -79,7 +79,7 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <a class="dropdown-item d-flex align-items-center" href="{% url 'pedidos' %}">
                                             <i class="bi bi-bag-check me-2"></i> Mis compras
                                         </a>
                                     </li>
@@ -113,7 +113,7 @@
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item"><a class="nav-link" href="{% url 'categoria_view' %}">Categorías</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'search_view' %}?q=all_on_sale">Ofertas</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Historial</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'pedidos' %}">Pedidos</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'search_view' %}?q=Teconología">Tecnología</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'search_view' %}?q=Moda">Moda</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'directorio_view' %}">Directorio</a></li>

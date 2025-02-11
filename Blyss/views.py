@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Productos, Categorias, Subcategorias, CategoriasProductos, SubcategoriasProductos, ImagenesProducto, Favoritos, Carrito
-from .models import BannersItems, BannerCategorias, BannerHome, OfertasHome, Direcciones, DireccionesUsuario
+from .models import BannersItems, BannerCategorias, BannerHome, OfertasHome, Direcciones, DireccionesUsuario, Pedido, DetallePedido, Pago
 from django.core.paginator import Paginator
 from django.db.models import F
 import base64
@@ -22,6 +22,8 @@ from django.db.models import Sum
 from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, FloatField
 from django.utils import timezone
+import uuid
+from django.db.models import Prefetch
 
 def index(request):
     # 1️⃣ **Banners ordenados: el principal primero, luego por fecha**
@@ -984,24 +986,24 @@ def carrito_view(request):
 
     # Obtener la imagen en base64
     for item in carrito_items:
-        # Intentar obtener la imagen principal
         imagen_principal = item.IdProducto.imagenes.filter(EsPrincipal=True).first()
-
-        # Si no hay imagen principal, obtener la imagen más reciente
         if not imagen_principal:
             imagen_principal = item.IdProducto.imagenes.order_by('-FechaAgregado').first()
 
-        # Convertir la imagen a base64 si existe
         if imagen_principal and imagen_principal.Imagen:
             item.imagen_base64 = base64.b64encode(imagen_principal.Imagen).decode("utf-8")
         else:
             item.imagen_base64 = None
+
+    # Obtener las direcciones del usuario
+    direcciones = DireccionesUsuario.objects.filter(IdUsuario=usuario).select_related('IdDirecciones')
 
     return render(request, 'Blyss/Producto/Carrito.html', {
         'carrito_items': carrito_items,
         'subtotal': subtotal,
         'descuento_total': descuento_total,
         'total': total,
+        'direcciones': direcciones  # Se envían las direcciones a la plantilla
     })
 
 @login_required
@@ -1432,6 +1434,7 @@ def obtener_direcciones_usuario(request):
 
     return JsonResponse({"direcciones": direcciones_data})
 
+@login_required
 @csrf_exempt  # Permite recibir peticiones POST sin CSRF Token (solo para pruebas, en producción usa CSRF)
 def agregar_direccion(request):
     if request.method == "POST":
@@ -1462,6 +1465,7 @@ def agregar_direccion(request):
 
     return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
 
+@login_required
 @csrf_exempt  # Solo para pruebas, en producción usa CSRF Token
 def actualizar_direccion(request, id_direccion):
     if request.method == "POST":
@@ -1489,6 +1493,7 @@ def actualizar_direccion(request, id_direccion):
 
     return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
 
+@login_required
 def editar_direccion(request, id_direccion):
     direccion = get_object_or_404(Direcciones, pk=id_direccion)
     
@@ -1511,6 +1516,7 @@ def editar_direccion(request, id_direccion):
     return render(request, 'Blyss/Directorio/detDireccion.html', {"direccion": direccion})
 
 @csrf_exempt
+@login_required
 def actualizar_direccion(request, id_direccion):
     if request.method == "POST":
         try:
@@ -1538,6 +1544,7 @@ def actualizar_direccion(request, id_direccion):
     return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
 
 @csrf_exempt
+@login_required
 def eliminar_direccion(request, id_direccion):
     if request.method == "DELETE":
         try:
@@ -1550,3 +1557,94 @@ def eliminar_direccion(request, id_direccion):
             return JsonResponse({"success": False, "message": str(e)})
 
     return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
+
+@csrf_exempt  # Solo para pruebas. En producción, usa el CSRF token en el fetch
+@login_required
+def procesar_compra(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Convertir el JSON recibido
+            usuario = request.user
+            metodo_pago = data.get("metodo_pago")
+            direccion_id = data.get("direccion_id")
+
+            if not direccion_id:
+                return JsonResponse({"success": False, "message": "No se seleccionó una dirección de envío"}, status=400)
+
+            carrito_items = Carrito.objects.filter(IdUsuario=usuario)
+
+            if not carrito_items.exists():
+                return JsonResponse({"success": False, "message": "El carrito está vacío"}, status=400)
+
+            # Verificar si la dirección existe y pertenece al usuario
+            try:
+                direccion = DireccionesUsuario.objects.get(IdUsuario=usuario, IdDirecciones_id=direccion_id).IdDirecciones
+            except DireccionesUsuario.DoesNotExist:
+                return JsonResponse({"success": False, "message": "La dirección seleccionada no es válida"}, status=400)
+
+            # Crear el pedido con la dirección
+            nuevo_pedido = Pedido.objects.create(
+                IdUsuario=usuario,
+                IdDirecciones=direccion,  # Asignar la dirección al pedido
+                Estado="En camino",
+                FechaPedido=now(),
+                Total=sum(item.IdProducto.PrecioDescuento * item.Cantidad for item in carrito_items)
+            )
+
+            # Guardar detalles del pedido
+            for item in carrito_items:
+                DetallePedido.objects.create(
+                    IdPedido=nuevo_pedido,
+                    IdProducto=item.IdProducto,
+                    Cantidad=item.Cantidad,
+                    PrecioUnitario=item.IdProducto.PrecioDescuento,
+                    Subtotal=item.IdProducto.PrecioDescuento * item.Cantidad
+                )
+
+                # Reducir stock
+                producto = item.IdProducto
+                producto.Stock -= item.Cantidad
+                producto.save()
+
+            # Registrar el pago
+            Pago.objects.create(
+                IdPedido=nuevo_pedido,
+                Metodo=metodo_pago,
+                FechaPago=now(),
+                Monto=nuevo_pedido.Total,
+                TransaccionId=str(uuid.uuid4())  # ID único de transacción
+            )
+
+            # Vaciar el carrito
+            carrito_items.delete()
+
+            return JsonResponse({"success": True, "message": "Compra realizada con éxito", "pedido_id": nuevo_pedido.IdPedido})
+
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Error al decodificar JSON"}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": f"Error interno: {str(e)}"}, status=500)
+
+    return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
+
+@login_required
+def pedidos_view(request):
+    pedidos = Pedido.objects.filter(IdUsuario=request.user).order_by('-FechaPedido').prefetch_related(
+        Prefetch('detalles', queryset=DetallePedido.objects.select_related('IdProducto'))
+    )
+
+    for pedido in pedidos:
+        for detalle in pedido.detalles.all():
+            if detalle.IdProducto:
+                imagen_principal = detalle.IdProducto.imagenes.filter(EsPrincipal=True).first()
+
+                if not imagen_principal:
+                    imagen_principal = detalle.IdProducto.imagenes.order_by('FechaAgregado').first()
+
+                detalle.imagen_base64 = (
+                    base64.b64encode(imagen_principal.Imagen).decode("utf-8")
+                    if imagen_principal and imagen_principal.Imagen else None
+                )
+
+    return render(request, 'Blyss/Pedidos/index.html', {'pedidos': pedidos})
