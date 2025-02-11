@@ -107,18 +107,19 @@
               </div>
             </div>
   
-            <!-- Card "Menos de $500" -->
-            <div class="col-lg-3 col-md-6 col-12 mb-4">
+          <!-- Card "Menos de $500" -->
+          <div class="col-lg-3 col-md-6 col-12 mb-4">
+            <a href="{% url 'search_view' %}?q=all500" class="text-decoration-none">
               <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
                 <h6 class="fw-bold fs-6">Menos de <span class="text-dark">$500</span></h6>
                 <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
                   <img src="{% static 'img/precio-bajo.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
                 </div>
                 <p class="text-muted mb-3">Descubre productos con precios bajos.</p>
-                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Mostrar productos</a>
               </div>
-            </div>
-  
+            </a>
+          </div>
+
             <!-- Card "Lo más vendido" -->
             <div class="col-lg-3 col-md-6 col-12 mb-4">
               <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
@@ -178,16 +179,17 @@
         
             <!-- Card "Productos Mejor Calificados" -->
             <div class="col-lg-3 col-md-6 col-12 mb-4">
-                <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
-                <h6 class="fw-bold fs-6">⭐ Productos Mejor Calificados</h6>
-                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
-                    <img src="{% static 'img/mejorcalificado.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
-                </div>
-                <p class="text-muted mb-3">Descubre los productos mejor valorados por los clientes.</p>
-                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver los mejores</a>
-                </div> 
+              <a href="{% url 'search_view' %}?q=all_5stars" class="text-decoration-none">
+                  <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                      <h6 class="fw-bold fs-6">⭐ Productos Mejor Calificados</h6>
+                      <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                          <img src="{% static 'img/mejorcalificado.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                      </div>
+                      <p class="text-muted mb-3">Descubre los productos mejor valorados por los clientes.</p>
+                  </div>
+              </a>
             </div>
-        
+
             </div>
         </div>  
   

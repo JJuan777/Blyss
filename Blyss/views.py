@@ -1038,45 +1038,77 @@ def favoritos_view(request):
         'productos_favoritos': productos_favoritos
     })
 
+
 def search_view(request):
-    query = request.GET.get('q', '')  # Término de búsqueda
-    order = request.GET.get('order', 'asc')  # Ordenar por precio
-    offset = int(request.GET.get('offset', 0))  # Paginación
-    limit = 15  # Número de productos por carga
+    query = request.GET.get('q', '')  
+    order = request.GET.get('order', 'asc')  
+    offset = int(request.GET.get('offset', 0))  
+    limit = 15  
+    min_price = request.GET.get('min_price')  
+    max_price = request.GET.get('max_price')  
+    min_rating = request.GET.get('min_rating')  
 
     productos = []
+    categorias_relacionadas = []
+    subcategorias_relacionadas = []
 
-    if query:
-        # Buscar productos por nombre
-        productos = Productos.objects.filter(Nombre__icontains=query)
+    if query.lower() == "all":
+        productos = list(Productos.objects.filter(Estado=True))
 
-        # Buscar categorías y subcategorías relacionadas con el término de búsqueda
+    elif query.lower() == "all500":
+        productos = list(Productos.objects.filter(Estado=True, Precio__lte=500))
+
+    elif query.lower() == "all_5stars":
+        productos = list(Productos.objects.filter(Estado=True, CalificacionPromedio__gte=4.5))
+
+    elif query:
+        productos = list(Productos.objects.filter(Nombre__icontains=query, Estado=True))
+
         categorias = Categorias.objects.filter(Nombre__icontains=query)
         subcategorias = Subcategorias.objects.filter(Nombre__icontains=query)
 
-        # Buscar productos por categoría
-        productos_por_categoria = Productos.objects.filter(
-            categorias_productos__IdCategoria__in=categorias
+        productos_por_categoria = list(Productos.objects.filter(
+            categorias_productos__IdCategoria__in=categorias, Estado=True
+        ))
+
+        productos_por_subcategoria = list(Productos.objects.filter(
+            subcategorias_productos__IdSubcategoria__in=subcategorias, Estado=True
+        ))
+
+        # Unir listas en lugar de usar .union()
+        productos = list(set(productos + productos_por_categoria + productos_por_subcategoria))
+
+        # Obtener categorías relacionadas
+        categorias_relacionadas = Categorias.objects.filter(
+            IdCategoria__in=CategoriasProductos.objects.filter(IdProducto__in=[p.IdProducto for p in productos]).values_list('IdCategoria', flat=True)
         )
 
-        # Buscar productos por subcategoría
-        productos_por_subcategoria = Productos.objects.filter(
-            subcategorias_productos__IdSubcategoria__in=subcategorias
+        # CORRECCIÓN: Se cambia `IdSubcategoria` por `IdSubCategoria`
+        subcategorias_relacionadas = Subcategorias.objects.filter(
+            IdSubCategoria__in=SubcategoriasProductos.objects.filter(IdProducto__in=[p.IdProducto for p in productos]).values_list('IdSubcategoria', flat=True)
         )
 
-        # Unir todos los productos en una sola lista sin duplicados
-        productos = productos.union(productos_por_categoria, productos_por_subcategoria)
-
-    # Definir precio final (con o sin descuento)
+    # Definir precio final
     for producto in productos:
         producto.precio_final = producto.PrecioDescuento if producto.PrecioDescuento and producto.PrecioDescuento > 0 else producto.Precio
+
+    # Aplicar filtros de precio si no es all500 ni all_5stars
+    if query.lower() not in ["all500", "all_5stars"]:
+        if min_price:
+            productos = [p for p in productos if p.precio_final >= float(min_price)]
+        if max_price:
+            productos = [p for p in productos if p.precio_final <= float(max_price)]
+
+    # Aplicar filtro de calificación mínima si no es all_5stars
+    if min_rating and query.lower() != "all_5stars":
+        productos = [p for p in productos if p.CalificacionPromedio >= float(min_rating)]
 
     # Ordenar los productos
     productos = sorted(productos, key=lambda p: p.precio_final, reverse=(order == 'desc'))
 
-    # Aplicar paginación (mostrar `limit` productos por cada solicitud)
+    # Aplicar paginación
     productos_paginados = productos[offset:offset + limit]
-    hay_mas = len(productos) > offset + limit  # Verifica si hay más productos para cargar
+    hay_mas = len(productos) > offset + limit  
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         productos_data = []
@@ -1092,15 +1124,22 @@ def search_view(request):
                 "nombre": p.Nombre,
                 "marca": p.Marca,
                 "precio": float(p.precio_final),
-                "precio_original": float(p.Precio),  # Precio original
-                "precio_descuento": float(p.PrecioDescuento) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,  # Solo si hay descuento
+                "precio_original": float(p.Precio),
+                "precio_descuento": float(p.PrecioDescuento) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,
                 "porcentaje_descuento": round(100 - (float(p.PrecioDescuento) / float(p.Precio) * 100)) if p.PrecioDescuento and p.PrecioDescuento > 0 else None,
+                "calificacion": p.CalificacionPromedio,
                 "imagen": imagen
             })
 
         return JsonResponse({"productos": productos_data, "hay_mas": hay_mas})
 
-    return render(request, 'Blyss/Search/index.html', {'productos': productos_paginados, 'query': query, 'order': order})
+    return render(request, 'Blyss/Search/index.html', {
+        'productos': productos_paginados,
+        'query': query,
+        'order': order,
+        'categorias_relacionadas': categorias_relacionadas,
+        'subcategorias_relacionadas': subcategorias_relacionadas
+    })
 
 def categoria_view(request):
     categorias = Categorias.objects.filter(Estado=True)  # Solo categorías activas

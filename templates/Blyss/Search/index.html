@@ -5,23 +5,129 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2 class="text-center mb-4">Resultados para: <span id="search-query">"{{ query }}"</span></h2>
+    <div class="row">
+        <!-- Panel lateral izquierdo -->
+        <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+                <h5>Filtrar por Precio</h5>
+                <hr>
+                <div class="mb-2">
+                    <label class="form-check">
+                        <input type="radio" name="price-range" class="form-check-input" value="0-100"> Menos de $100
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check">
+                        <input type="radio" name="price-range" class="form-check-input" value="100-500"> $100 - $500
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check">
+                        <input type="radio" name="price-range" class="form-check-input" value="500-2000"> $500 - $2000
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check">
+                        <input type="radio" name="price-range" class="form-check-input" value="2000-"> Más de $2000
+                    </label>
+                </div>
+                <hr>
+                <h6>Precio personalizado</h6>
+                <div class="mb-2">
+                    <label for="min-price" class="form-label">Mínimo:</label>
+                    <input type="number" id="min-price" class="form-control" placeholder="Ej: 50">
+                </div>
+                <div class="mb-2">
+                    <label for="max-price" class="form-label">Máximo:</label>
+                    <input type="number" id="max-price" class="form-control" placeholder="Ej: 500">
+                </div>
+                <button id="apply-filter" class="btn btn-primary w-100 mt-2">Aplicar</button>
+            </div>
 
-        <!-- Selector de Orden -->
-        <select id="order-select" class="form-select w-auto">
-            <option value="asc">Menor Precio</option>
-            <option value="desc">Mayor Precio</option>
-        </select>
-    </div>
+            <!-- Nuevo panel: Filtrar por Calificación -->
+            <div class="card p-3 shadow-sm mt-3">
+                <h5>Filtrar por Calificación</h5>
+                <hr>
+                <div class="mb-2">
+                    <label class="form-check d-flex align-items-center">
+                        <input type="radio" name="rating-filter" class="form-check-input" value="5">
+                        <span class="ms-2">★★★★★ (5 estrellas)</span>
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check d-flex align-items-center">
+                        <input type="radio" name="rating-filter" class="form-check-input" value="4">
+                        <span class="ms-2">★★★★☆ (4 estrellas o más)</span>
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check d-flex align-items-center">
+                        <input type="radio" name="rating-filter" class="form-check-input" value="3">
+                        <span class="ms-2">★★★☆☆ (3 estrellas o más)</span>
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check d-flex align-items-center">
+                        <input type="radio" name="rating-filter" class="form-check-input" value="2">
+                        <span class="ms-2">★★☆☆☆ (2 estrellas o más)</span>
+                    </label>
+                </div>
+                <div class="mb-2">
+                    <label class="form-check d-flex align-items-center">
+                        <input type="radio" name="rating-filter" class="form-check-input" value="1">
+                        <span class="ms-2">★☆☆☆☆ (1 estrella o más)</span>
+                    </label>
+                </div>
+            </div>
 
-    <!-- Contenedor de Productos -->
-    <div id="search-results" class="row mt-3"></div>
+            <!-- Panel de Categorías y Subcategorías Relacionadas -->
+            {% if categorias_relacionadas or subcategorias_relacionadas %}
+            <div class="card mt-4 p-3 shadow-sm">
+                <h5 class="fw-bold"><i class="bi bi-tags-fill"></i> Categorías</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for categoria in categorias_relacionadas %}
+                        <a href="{% url 'search_view' %}?q={{ categoria.Nombre }}">
+                            <i class="bi bi-folder-fill"></i> {{ categoria.Nombre }}
+                        </a>
+                    {% endfor %}
+                </div>
 
-    <!-- Loader -->
-    <div id="loading" class="text-center my-3" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
+                <h5 class="fw-bold mt-3"><i class="bi bi-list-stars"></i> Subcategorías</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for subcategoria in subcategorias_relacionadas %}
+                        <a href="{% url 'search_view' %}?q={{ subcategoria.Nombre }}">
+                            <i class="bi bi-star-fill"></i> {{ subcategoria.Nombre }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-center mb-4">Resultados para: <span id="search-query">"{{ query }}"</span></h2>
+
+                <!-- Selector de Orden -->
+                <select id="order-select" class="form-select w-auto">
+                    <option value="asc">Menor Precio</option>
+                    <option value="desc">Mayor Precio</option>
+                </select>
+            </div>
+            <!-- Contenedor de tags de filtros -->
+            <div id="filter-tags" class="d-flex gap-2 mt-2"></div>
+
+            <!-- Contenedor de Productos -->
+            <div id="search-results" class="row mt-3"></div>
+
+            <!-- Loader -->
+            <div id="loading" class="text-center my-3" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
