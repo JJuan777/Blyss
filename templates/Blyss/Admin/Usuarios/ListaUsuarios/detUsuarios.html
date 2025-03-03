@@ -1,0 +1,63 @@
+{% extends 'Blyss/Admin/Usuarios/index.html' %}
+{% load static %}
+
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <!-- Botón Volver Arriba -->
+    <div class="d-flex justify-content-between mb-4">
+        <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title text-center">{{ usuario.Nombre }} {{ usuario.Apellidos }}</h4>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Correo:</strong> {{ usuario.correo }}</li>
+                <li class="list-group-item"><strong>Teléfono:</strong> 
+                    <input type="text" class="form-control editable" id="telefono" value="{{ usuario.Telefono|default:'' }}" data-field="Telefono">
+                </li>
+                <li class="list-group-item"><strong>País:</strong> 
+                    <select class="form-control editable" id="pais" data-field="Pais">
+                        <option value="México" {% if usuario.Pais == "México" %}selected{% endif %}>México</option>
+                    </select>
+                </li>
+                <li class="list-group-item"><strong>Fecha de Nacimiento:</strong> 
+                    <input type="date" class="form-control editable" id="fechaNacimiento" value="{{ usuario.FechaDeNacimiento|default:'' }}" data-field="FechaDeNacimiento">
+                </li>
+                <li class="list-group-item"><strong>Género:</strong> 
+                    <select class="form-control editable" id="genero" data-field="Genero">
+                        <option value="" disabled selected>Selecciona un género</option>
+                        <option value="Masculino" {% if usuario.Genero == "Masculino" %}selected{% endif %}>Masculino</option>
+                        <option value="Femenino" {% if usuario.Genero == "Femenino" %}selected{% endif %}>Femenino</option>
+                        <option value="Otros" {% if usuario.Genero == "Otros" %}selected{% endif %}>Otros</option>
+                    </select>
+                </li>                
+                <li class="list-group-item"><strong>Estado:</strong> 
+                    <div class="form-check form-switch">
+                        <input class="form-check-input editable-checkbox" type="checkbox" id="is_active" data-field="is_active" {% if usuario.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            {% if usuario.is_active %}
+                                Activo
+                            {% else %}
+                                Inactivo
+                            {% endif %}
+                        </label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Botón Guardar Abajo a la Derecha -->
+    <div class="d-flex justify-content-end mt-3">
+        <button id="btnActualizar" class="btn btn-success" data-user-id="{{ usuario.IdUsuario }}">
+            <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+    </div>
+</div>
+
+<script src="{% static 'js/Admin/Usuarios/ListaUsuarios/detUsuarios.js' %}"></script>
+
+{% endblock %}

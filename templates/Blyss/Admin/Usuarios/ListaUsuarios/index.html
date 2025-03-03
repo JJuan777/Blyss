@@ -1,0 +1,36 @@
+{% extends 'Blyss/Admin/Usuarios/index.html' %}
+{% load static %}
+
+{% block dynamic_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center">📢 Gestión de Usuarios</h2>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-light table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th>Detalles</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-usuarios">
+                <!-- Se llenará con AJAX -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    <nav>
+        <ul class="pagination justify-content-center" id="pagination-container">
+            <!-- Se llenará con AJAX -->
+        </ul>
+    </nav>
+</div>
+
+<script src="{% static 'js/Admin/Usuarios/ListaUsuarios/index.js' %}"></script>
+{% endblock %}

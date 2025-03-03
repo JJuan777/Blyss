@@ -76,4 +76,16 @@ urlpatterns = [
     path('api/eliminar_direccion/<int:id_direccion>/', views.eliminar_direccion, name='eliminar_direccion'),
             #Carrito
     path('pedidos/', views.pedidos_view, name='pedidos'),
+        #Usuarios
+    path('admin/usuarios/', views.usuarios_view, name='usuarios'),
+    path('admin/usuarios/lista_usuarios', views.lista_usuarios_view, name='lista_usuarios'),
+    path('usuarios/ajax/', views.usuarios_lista_ajax, name='usuarios_lista_ajax'),
+    path('usuarios/cambiar_estado/', views.cambiar_estado_usuario, name='cambiar_estado_usuario'),
+    path('admin/usuarios/view/<int:usuario_id>/', views.usuario_detalle_view, name='usuario_detalle'),
+    path('usuarios/actualizar/', views.actualizar_usuario, name='actualizar_usuario'),
+            #Roles
+    path('admin/usuarios/roles/', views.roles_view, name='roles'),
+            #Auditoría
+    path('admin/usuarios/auditoria/', views.auditoria_usuarios_view, name='auditoria_usuarios'),
+
 ]

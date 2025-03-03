@@ -1558,34 +1558,23 @@ def eliminar_direccion(request, id_direccion):
 
     return JsonResponse({"success": False, "message": "Método no permitido"}, status=405)
 
-@csrf_exempt  # Solo para pruebas. En producción, usa el CSRF token en el fetch
 @login_required
+@csrf_exempt  # Solo para pruebas. En producción, usa el CSRF token en el fetch
 def procesar_compra(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)  # Convertir el JSON recibido
             usuario = request.user
             metodo_pago = data.get("metodo_pago")
-            direccion_id = data.get("direccion_id")
-
-            if not direccion_id:
-                return JsonResponse({"success": False, "message": "No se seleccionó una dirección de envío"}, status=400)
 
             carrito_items = Carrito.objects.filter(IdUsuario=usuario)
 
             if not carrito_items.exists():
                 return JsonResponse({"success": False, "message": "El carrito está vacío"}, status=400)
 
-            # Verificar si la dirección existe y pertenece al usuario
-            try:
-                direccion = DireccionesUsuario.objects.get(IdUsuario=usuario, IdDirecciones_id=direccion_id).IdDirecciones
-            except DireccionesUsuario.DoesNotExist:
-                return JsonResponse({"success": False, "message": "La dirección seleccionada no es válida"}, status=400)
-
-            # Crear el pedido con la dirección
+            # Crear el pedido
             nuevo_pedido = Pedido.objects.create(
                 IdUsuario=usuario,
-                IdDirecciones=direccion,  # Asignar la dirección al pedido
                 Estado="En camino",
                 FechaPedido=now(),
                 Total=sum(item.IdProducto.PrecioDescuento * item.Cantidad for item in carrito_items)
@@ -1648,3 +1637,100 @@ def pedidos_view(request):
                 )
 
     return render(request, 'Blyss/Pedidos/index.html', {'pedidos': pedidos})
+
+@login_required
+def usuarios_view(request):
+    return render(request, 'Blyss/Admin/Usuarios/index.html')
+
+@login_required
+def lista_usuarios_view(request):
+    return render(request, 'Blyss/Admin/Usuarios/ListaUsuarios/index.html')
+
+@login_required
+def usuarios_lista_ajax(request):
+    page_number = request.GET.get('page', 1)  # Obtiene el número de página de la solicitud
+    usuarios_list = Usuarios.objects.all().order_by('Nombre')
+
+    paginator = Paginator(usuarios_list, 10)  # Paginación de 10 usuarios por página
+    usuarios = paginator.get_page(page_number)
+
+    data = {
+        'usuarios': [
+            {
+                'id': usuario.IdUsuario,  # Se agrega el ID del usuario
+                'nombre_completo': f"{usuario.Nombre} {usuario.Apellidos}",
+                'correo': usuario.correo,
+                'telefono': usuario.Telefono if usuario.Telefono else "N/A",
+                'is_active': usuario.is_active
+            }
+            for usuario in usuarios
+        ],
+        'has_previous': usuarios.has_previous(),
+        'has_next': usuarios.has_next(),
+        'previous_page_number': usuarios.previous_page_number() if usuarios.has_previous() else None,
+        'next_page_number': usuarios.next_page_number() if usuarios.has_next() else None,
+        'current_page': usuarios.number,
+        'total_pages': paginator.num_pages,
+    }
+
+    return JsonResponse(data)
+
+@csrf_exempt  # Para permitir peticiones AJAX sin CSRF token
+@login_required
+def cambiar_estado_usuario(request):
+    if request.method == "POST":
+        try:
+            user_id = request.POST.get("user_id")
+            usuario = Usuarios.objects.get(IdUsuario=user_id)
+
+            usuario.is_active = not usuario.is_active  # Alterna el estado
+            usuario.save()
+
+            return JsonResponse({"success": True, "is_active": usuario.is_active})
+        except Usuarios.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Usuario no encontrado"})
+    
+    return JsonResponse({"success": False, "error": "Método no permitido"})
+
+@login_required
+def usuario_detalle_view(request, usuario_id):
+    usuario = get_object_or_404(Usuarios, IdUsuario=usuario_id)  # Obtiene el usuario o muestra error 404
+    return render(request, 'Blyss/Admin/Usuarios/ListaUsuarios/detUsuarios.html', {'usuario': usuario})
+
+@csrf_exempt
+@login_required
+def actualizar_usuario(request):
+    if request.method == "POST":
+        try:
+            user_id = request.POST.get("user_id")
+            
+            if not user_id:
+                return JsonResponse({"success": False, "error": "ID de usuario no proporcionado"})
+
+            usuario = Usuarios.objects.get(IdUsuario=user_id)
+
+            # Lista de campos permitidos para edición
+            campos_permitidos = ["Telefono", "Pais", "FechaDeNacimiento", "Genero", "is_active"]
+
+            for campo in campos_permitidos:
+                if campo in request.POST:
+                    valor = request.POST[campo]
+                    if campo == "is_active":
+                        valor = valor.lower() == "true"
+                    setattr(usuario, campo, valor)
+
+            usuario.save()
+            return JsonResponse({"success": True})
+
+        except Usuarios.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Usuario no encontrado"})
+
+    return JsonResponse({"success": False, "error": "Método no permitido"})
+
+@login_required
+def roles_view(request):
+    return render(request, 'Blyss/Admin/Usuarios/Roles/index.html')
+
+@login_required
+def auditoria_usuarios_view(request):
+    return render(request, 'Blyss/Admin/Usuarios/Auditoria/index.html')
