@@ -288,3 +288,55 @@ class Pago(models.Model):
 
     def __str__(self):
         return f"Pago {self.IdPago} - Pedido {self.IdPedido.IdPedido} - {self.Metodo}"
+
+class Roles(models.Model):
+    IdRol = models.AutoField(primary_key=True)
+    Descripcion = models.CharField(max_length=255, unique=True)
+    
+    class Meta:
+        verbose_name = "Rol"
+        verbose_name_plural = "Roles"
+    
+    def __str__(self):
+        return self.Descripcion
+
+class UsuarioRol(models.Model):
+    IdUsuarioRol = models.AutoField(primary_key=True)
+    Usuario = models.ForeignKey('Usuarios', on_delete=models.CASCADE, related_name='roles_asignados')
+    Rol = models.ForeignKey(Roles, on_delete=models.CASCADE, related_name='usuarios_asignados')
+    FechaAsignado = models.DateTimeField(auto_now_add=True)
+    AsignadoPor = models.ForeignKey('Usuarios', on_delete=models.SET_NULL, null=True, blank=True, related_name='roles_asignados_por')
+    
+    class Meta:
+        verbose_name = "Usuario Rol"
+        verbose_name_plural = "Usuarios Roles"
+        unique_together = ('Usuario', 'Rol')  # Evita asignaciones duplicadas
+    
+    def __str__(self):
+        return f"{self.Usuario} - {self.Rol}"
+
+class Permisos(models.Model):
+    IdPermiso = models.AutoField(primary_key=True)
+    Descripcion = models.CharField(max_length=255, unique=True)
+    
+    class Meta:
+        verbose_name = "Permiso"
+        verbose_name_plural = "Permisos"
+    
+    def __str__(self):
+        return self.Descripcion
+
+class UsuarioPermiso(models.Model):
+    IdUsuarioPermiso = models.AutoField(primary_key=True)
+    Usuario = models.ForeignKey('Usuarios', on_delete=models.CASCADE, related_name='permisos_asignados')
+    Permiso = models.ForeignKey(Permisos, on_delete=models.CASCADE, related_name='usuarios_asignados')
+    FechaAsignado = models.DateTimeField(auto_now_add=True)
+    AsignadoPor = models.ForeignKey('Usuarios', on_delete=models.SET_NULL, null=True, blank=True, related_name='permisos_asignados_por')
+    
+    class Meta:
+        verbose_name = "Usuario Permiso"
+        verbose_name_plural = "Usuarios Permisos"
+        unique_together = ('Usuario', 'Permiso')  # Evita asignaciones duplicadas
+    
+    def __str__(self):
+        return f"{self.Usuario} - {self.Permiso}"

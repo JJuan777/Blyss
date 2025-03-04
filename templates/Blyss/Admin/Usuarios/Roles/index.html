@@ -7,8 +7,26 @@
         <h2 class="text-center">📢 Gestión de Roles y Permisos</h2>
     </div>
 
-
+    <div class="table-responsive">
+        <table id="usuariosTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Rol/Permisos</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </div>
+<!-- Carga jQuery primero -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<script src="{% static 'js/Admin/Usuarios/ListaUsuarios/index.js' %}"></script>
+<!-- Carga DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="{% static 'js/Admin/Usuarios/Roles/index.js' %}"></script>
 {% endblock %}

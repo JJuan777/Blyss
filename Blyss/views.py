@@ -24,6 +24,7 @@ from django.db.models import F, ExpressionWrapper, FloatField
 from django.utils import timezone
 import uuid
 from django.db.models import Prefetch
+from .models import Usuarios, UsuarioRol, Roles, UsuarioPermiso, Permisos
 
 def index(request):
     # 1️⃣ **Banners ordenados: el principal primero, luego por fecha**
@@ -1734,3 +1735,23 @@ def roles_view(request):
 @login_required
 def auditoria_usuarios_view(request):
     return render(request, 'Blyss/Admin/Usuarios/Auditoria/index.html')
+
+def obtener_usuarios_staff(request):
+    usuarios = Usuarios.objects.filter(is_staff=True).values('IdUsuario', 'Nombre', 'Apellidos', 'correo', 'Telefono')
+
+    usuarios_lista = []
+    for usuario in usuarios:
+        roles = UsuarioRol.objects.filter(Usuario_id=usuario['IdUsuario']).select_related('Rol')
+        permisos = UsuarioPermiso.objects.filter(Usuario_id=usuario['IdUsuario']).select_related('Permiso')
+
+        roles_lista = [rol.Rol.Descripcion for rol in roles]
+        permisos_lista = [permiso.Permiso.Descripcion for permiso in permisos]
+
+        usuarios_lista.append({
+            'nombre_completo': f"{usuario['Nombre']} {usuario['Apellidos']}",
+            'correo': usuario['correo'],
+            'telefono': usuario['Telefono'] or "N/A",
+            'roles_permisos': ", ".join(roles_lista + permisos_lista) if roles_lista or permisos_lista else "Sin asignar"
+        })
+
+    return JsonResponse({'data': usuarios_lista})

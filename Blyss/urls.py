@@ -87,5 +87,6 @@ urlpatterns = [
     path('admin/usuarios/roles/', views.roles_view, name='roles'),
             #Auditoría
     path('admin/usuarios/auditoria/', views.auditoria_usuarios_view, name='auditoria_usuarios'),
+    path('api/usuarios-staff/', views.obtener_usuarios_staff, name='usuarios-staff'),
 
 ]
