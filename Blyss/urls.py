@@ -88,5 +88,11 @@ urlpatterns = [
             #Auditoría
     path('admin/usuarios/auditoria/', views.auditoria_usuarios_view, name='auditoria_usuarios'),
     path('api/usuarios-staff/', views.obtener_usuarios_staff, name='usuarios-staff'),
+    path('admin/usuarios/roles/view/<int:usuario_id>/', views.usuario_roldet_view, name='usuario_roldet'),
+    path('usuario/rol/actualizar/', views.actualizar_usuario_rol, name='actualizar_usuario_rol'),
+    path('usuario/<int:usuario_id>/permisos/', views.obtener_permisos_usuario, name='obtener_permisos_usuario'),
+    path('usuario/<int:usuario_id>/permisos_disponibles/', views.obtener_permisos_disponibles, name='obtener_permisos_disponibles'),
+    path('usuario/asignar_permiso/', views.asignar_permiso_usuario, name='asignar_permiso_usuario'),
+    path('usuario/quitar_permiso/', views.quitar_permiso_usuario, name='quitar_permiso_usuario'),
 
 ]

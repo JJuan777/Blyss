@@ -96,17 +96,21 @@
             {% endif %}
   
             <!-- Card "Cómpralo de nuevo" -->
-            <div class="col-lg-3 col-md-6 col-12 mb-4">
-              <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
-                <h6 class="fw-bold fs-6 text-dark">🛒 Cómpralo de nuevo</h6>
-                <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
-                  <img src="{% static 'img/compra-nueva.png' %}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
-                </div>
-                <p class="text-muted mb-3">Repite tu última compra.</p>
-                <a href="#" class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver productos</a>
+            {% if producto_comprado %}
+              <div class="col-lg-3 col-md-6 col-12 mb-4">
+                <a href="{% url 'producto' producto_comprado.IdProducto %}" class="text-decoration-none">
+                  <div class="card shadow-sm border-0 text-center p-4 h-100 d-flex flex-column">
+                    <h6 class="fw-bold fs-6 text-dark">🛒 Cómpralo de nuevo</h6>
+                    <div class="bg-white d-flex align-items-center justify-content-center my-2" style="height: 120px;">
+                      <img src="data:image/png;base64,{{ producto_comprado_img|b64encode }}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                    </div>
+                    <p class="text-muted mb-3">{{ producto_comprado.Nombre }}</p>
+                    <div class="btn btn-primary btn-sm text-primary bg-light border-0 mt-auto">Ver producto</div>
+                  </div>
+                </a>
               </div>
-            </div>
-  
+            {% endif %}
+
           <!-- Card "Menos de $500" -->
           <div class="col-lg-3 col-md-6 col-12 mb-4">
             <a href="{% url 'search_view' %}?q=all500" class="text-decoration-none">

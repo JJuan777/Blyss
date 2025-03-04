@@ -10,14 +10,10 @@ $(document).ready(function() {
             { "data": "correo" },
             { "data": "telefono" },
             { 
-                "data": "id",
-                "className": "text-center", // Centrar contenido de la columna
+                "data": "last_login",
+                "className": "text-center",  // Centrar el texto
                 "render": function(data, type, row) {
-                    return `
-                        <a href="/Blyss/admin/usuarios/roles/view/${data}/" class="btn btn-primary btn-sm" title="Gestionar Roles y Permisos">
-                            <i class="fas fa-user-cog"></i>
-                        </a>
-                    `;
+                    return data ? data : "Nunca"; // Si no ha iniciado sesión, mostrar "Nunca"
                 }
             }
         ],

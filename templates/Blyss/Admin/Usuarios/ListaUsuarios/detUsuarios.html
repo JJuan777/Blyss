@@ -12,7 +12,14 @@
 
     <div class="card">
         <div class="card-body">
-            <h4 class="card-title text-center">{{ usuario.Nombre }} {{ usuario.Apellidos }}</h4>
+            <div class="d-flex align-items-center justify-content-center">
+                <div class="avatar me-2">
+                    {{ usuario.Nombre|first }}{{ usuario.Apellidos|first }}
+                </div>
+                <h4 class="card-title text-center mb-0">
+                    {{ usuario.Nombre }} {{ usuario.Apellidos }}
+                </h4>
+            </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item"><strong>Correo:</strong> {{ usuario.correo }}</li>
                 <li class="list-group-item"><strong>Teléfono:</strong> 

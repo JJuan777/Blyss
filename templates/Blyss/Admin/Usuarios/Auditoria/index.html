@@ -7,8 +7,35 @@
         <h2 class="text-center">📢 Auditoría</h2>
     </div>
 
+    <div class="table-responsive">
+        <table id="usuariosTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Última entrada</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 
+    <!-- Nueva Card para Acciones del Usuario -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h4 class="card-title text-center">📌 Acciones del Usuario</h4>
+
+        </div>
+    </div>
 </div>
 
-<script src="{% static 'js/Admin/Usuarios/ListaUsuarios/index.js' %}"></script>
+<!-- Carga jQuery primero -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Carga DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="{% static 'js/Admin/Usuarios/Auditoria/index.js' %}"></script>
 {% endblock %}

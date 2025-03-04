@@ -25,6 +25,7 @@ from django.utils import timezone
 import uuid
 from django.db.models import Prefetch
 from .models import Usuarios, UsuarioRol, Roles, UsuarioPermiso, Permisos
+from django.utils.timezone import localtime
 
 def index(request):
     # 1️⃣ **Banners ordenados: el principal primero, luego por fecha**
@@ -62,6 +63,24 @@ def index(request):
             'descuento': descuento_producto
         })
 
+    # 5️⃣ **Sección: Cómpralo de Nuevo (Último producto comprado)**
+    producto_comprado = None
+    producto_comprado_img = None
+
+    if request.user.is_authenticated:
+        usuario_actual = request.user
+
+        # Obtener el último pedido pagado del usuario
+        ultimo_pedido = Pedido.objects.filter(IdUsuario=usuario_actual, Estado="En camino").order_by('-FechaPedido').first()
+
+        if ultimo_pedido:
+            ultimo_detalle = DetallePedido.objects.filter(IdPedido=ultimo_pedido).order_by('-IdDetalle').first()
+
+            if ultimo_detalle:
+                producto_comprado = ultimo_detalle.IdProducto
+                img_producto = producto_comprado.imagenes.filter(EsPrincipal=True).first() or producto_comprado.imagenes.first()
+                producto_comprado_img = img_producto.Imagen if img_producto else None
+
     # 4️⃣ **Sección: Ofertas Destacadas**
     oferta_principal = OfertasHome.objects.filter(EsPrincipal=True).first()
     producto_principal = oferta_principal.IdProducto if oferta_principal else None
@@ -94,44 +113,46 @@ def index(request):
             'descuento': descuento_producto
         })
 
-    # 5️⃣ **Sección: Basado en tu Carrito**
-    usuario_actual = request.user
-    productos_en_carrito = Carrito.objects.filter(IdUsuario=usuario_actual)
-
+    # 5️⃣ **Sección: Basado en tu Carrito (Solo si el usuario está autenticado)**
     productos_carrito = []
-    categorias_ids = set()
-    subcategorias_ids = set()
 
-    for item in productos_en_carrito:
-        producto = item.IdProducto
+    if request.user.is_authenticated:
+        usuario_actual = request.user
+        productos_en_carrito = Carrito.objects.filter(IdUsuario=usuario_actual)
 
-        categorias = CategoriasProductos.objects.filter(IdProducto=producto).values_list('IdCategoria', flat=True)
-        subcategorias = SubcategoriasProductos.objects.filter(IdProducto=producto).values_list('IdSubcategoria', flat=True)
+        categorias_ids = set()
+        subcategorias_ids = set()
 
-        categorias_ids.update(categorias)
-        subcategorias_ids.update(subcategorias)
+        for item in productos_en_carrito:
+            producto = item.IdProducto
 
-    productos_relacionados = Productos.objects.filter(
-        Estado=True,
-        categorias_productos__IdCategoria__in=categorias_ids,
-        subcategorias_productos__IdSubcategoria__in=subcategorias_ids
-    ).exclude(
-        IdProducto__in=productos_en_carrito.values_list('IdProducto', flat=True)
-    ).distinct()[:8]
+            categorias = CategoriasProductos.objects.filter(IdProducto=producto).values_list('IdCategoria', flat=True)
+            subcategorias = SubcategoriasProductos.objects.filter(IdProducto=producto).values_list('IdSubcategoria', flat=True)
 
-    for prod in productos_relacionados:
-        img_producto = prod.imagenes.filter(EsPrincipal=True).first() or prod.imagenes.first()
-        img_base64 = img_producto.Imagen if img_producto else None
+            categorias_ids.update(categorias)
+            subcategorias_ids.update(subcategorias)
 
-        descuento_producto = None
-        if prod.PrecioDescuento and prod.Precio > prod.PrecioDescuento:
-            descuento_producto = round(100 - (prod.PrecioDescuento * 100 / prod.Precio))
+        productos_relacionados = Productos.objects.filter(
+            Estado=True,
+            categorias_productos__IdCategoria__in=categorias_ids,
+            subcategorias_productos__IdSubcategoria__in=subcategorias_ids
+        ).exclude(
+            IdProducto__in=productos_en_carrito.values_list('IdProducto', flat=True)
+        ).distinct()[:8]
 
-        productos_carrito.append({
-            'producto': prod,
-            'img_base64': img_base64,
-            'descuento': descuento_producto
-        })
+        for prod in productos_relacionados:
+            img_producto = prod.imagenes.filter(EsPrincipal=True).first() or prod.imagenes.first()
+            img_base64 = img_producto.Imagen if img_producto else None
+
+            descuento_producto = None
+            if prod.PrecioDescuento and prod.Precio > prod.PrecioDescuento:
+                descuento_producto = round(100 - (prod.PrecioDescuento * 100 / prod.Precio))
+
+            productos_carrito.append({
+                'producto': prod,
+                'img_base64': img_base64,
+                'descuento': descuento_producto
+            })
 
     # 6️⃣ **Sección: Banners Dinámicos**
     banners_items = BannersItems.objects.order_by('-FechaAgregada')[:3]
@@ -168,8 +189,10 @@ def index(request):
         'producto_principal_img': producto_principal_img,
         'descuento_principal': descuento_principal,
         'productos_en_carrusel': productos_en_carrusel,
-        'productos_carrito': productos_carrito,
+        'productos_carrito': productos_carrito if request.user.is_authenticated else None,
         'banners_data': banners_data,  # Sección de banners dinámicos
+        'producto_comprado': producto_comprado,
+        'producto_comprado_img': producto_comprado_img,
     }
 
     return render(request, 'Blyss/index.html', context)
@@ -1733,11 +1756,8 @@ def roles_view(request):
     return render(request, 'Blyss/Admin/Usuarios/Roles/index.html')
 
 @login_required
-def auditoria_usuarios_view(request):
-    return render(request, 'Blyss/Admin/Usuarios/Auditoria/index.html')
-
 def obtener_usuarios_staff(request):
-    usuarios = Usuarios.objects.filter(is_staff=True).values('IdUsuario', 'Nombre', 'Apellidos', 'correo', 'Telefono')
+    usuarios = Usuarios.objects.filter(is_staff=True).values('IdUsuario', 'Nombre', 'Apellidos', 'correo', 'Telefono', 'last_login')
 
     usuarios_lista = []
     for usuario in usuarios:
@@ -1747,11 +1767,122 @@ def obtener_usuarios_staff(request):
         roles_lista = [rol.Rol.Descripcion for rol in roles]
         permisos_lista = [permiso.Permiso.Descripcion for permiso in permisos]
 
+        # Convertir last_login a la hora local
+        last_login = localtime(usuario['last_login']).strftime("%Y-%m-%d %H:%M") if usuario['last_login'] else "Nunca"
+
         usuarios_lista.append({
+            'id': usuario['IdUsuario'],  # ID del usuario para la tabla
             'nombre_completo': f"{usuario['Nombre']} {usuario['Apellidos']}",
             'correo': usuario['correo'],
             'telefono': usuario['Telefono'] or "N/A",
-            'roles_permisos': ", ".join(roles_lista + permisos_lista) if roles_lista or permisos_lista else "Sin asignar"
+            'roles_permisos': ", ".join(roles_lista + permisos_lista) if roles_lista or permisos_lista else "Sin asignar",
+            'last_login': last_login  # Último inicio de sesión
         })
 
     return JsonResponse({'data': usuarios_lista})
+
+
+@login_required
+def usuario_roldet_view(request, usuario_id):
+    usuario = get_object_or_404(Usuarios, IdUsuario=usuario_id)
+    roles = Roles.objects.all()
+    rol_asignado = usuario.roles_asignados.first()  # Obtiene el primer rol asignado (si existe)
+
+    return render(request, 'Blyss/Admin/Usuarios/Roles/detUsuarioRol.html', {
+        'usuario': usuario,
+        'roles': roles,
+        'rol_asignado': rol_asignado  # Pasamos el rol asignado correctamente
+    })
+
+@login_required
+def actualizar_usuario_rol(request):
+    if request.method == "POST":
+        usuario_id = request.POST.get("usuario_id")
+        rol_id = request.POST.get("rol_id")
+
+        if not usuario_id:
+            return JsonResponse({"success": False, "message": "ID de usuario no recibido."}, status=400)
+
+        try:
+            usuario = get_object_or_404(Usuarios, IdUsuario=int(usuario_id))
+
+            # Eliminar roles anteriores
+            UsuarioRol.objects.filter(Usuario=usuario).delete()
+
+            if rol_id:  # Si se seleccionó un nuevo rol
+                rol = get_object_or_404(Roles, IdRol=int(rol_id))
+                UsuarioRol.objects.create(Usuario=usuario, Rol=rol, AsignadoPor=request.user)
+
+            return JsonResponse({"success": True, "message": "Rol actualizado correctamente."})
+
+        except ValueError:
+            return JsonResponse({"success": False, "message": "ID de usuario o rol no válido."}, status=400)
+
+    return JsonResponse({"success": False, "message": "Método no permitido."}, status=405)
+
+@login_required
+def obtener_permisos_usuario(request, usuario_id):
+    usuario = get_object_or_404(Usuarios, IdUsuario=usuario_id)
+    permisos = UsuarioPermiso.objects.filter(Usuario=usuario).select_related("Permiso")
+
+    data = [
+        {
+            "id": permiso.Permiso.IdPermiso,
+            "descripcion": permiso.Permiso.Descripcion,
+            "fecha": localtime(permiso.FechaAsignado).strftime("%Y-%m-%d %H:%M")
+        }
+        for permiso in permisos
+    ]
+
+    return JsonResponse({"success": True, "permisos": data})
+
+
+@login_required
+def obtener_permisos_disponibles(request, usuario_id):
+    usuario = get_object_or_404(Usuarios, IdUsuario=usuario_id)
+    permisos_asignados = UsuarioPermiso.objects.filter(Usuario=usuario).values_list('Permiso__IdPermiso', flat=True)
+    
+    permisos_disponibles = Permisos.objects.exclude(IdPermiso__in=permisos_asignados)
+    data = [{"id": permiso.IdPermiso, "descripcion": permiso.Descripcion} for permiso in permisos_disponibles]
+
+    return JsonResponse({"success": True, "permisos": data})
+
+@login_required
+def asignar_permiso_usuario(request):
+    if request.method == "POST":
+        usuario_id = request.POST.get("usuario_id")
+        permiso_id = request.POST.get("permiso_id")
+
+        usuario = get_object_or_404(Usuarios, IdUsuario=usuario_id)
+        permiso = get_object_or_404(Permisos, IdPermiso=permiso_id)
+
+        # Verificar que el usuario no tenga ya el permiso
+        if not UsuarioPermiso.objects.filter(Usuario=usuario, Permiso=permiso).exists():
+            UsuarioPermiso.objects.create(Usuario=usuario, Permiso=permiso, AsignadoPor=request.user)
+            return JsonResponse({"success": True, "message": "Permiso asignado correctamente."})
+        else:
+            return JsonResponse({"success": False, "message": "El usuario ya tiene este permiso."}, status=400)
+
+    return JsonResponse({"success": False, "message": "Método no permitido."}, status=405)
+
+@login_required
+def quitar_permiso_usuario(request):
+    if request.method == "POST":
+        usuario_id = request.POST.get("usuario_id")
+        permiso_id = request.POST.get("permiso_id")
+
+        usuario = get_object_or_404(Usuarios, IdUsuario=usuario_id)
+        permiso = get_object_or_404(Permisos, IdPermiso=permiso_id)
+
+        usuario_permiso = UsuarioPermiso.objects.filter(Usuario=usuario, Permiso=permiso)
+        if usuario_permiso.exists():
+            usuario_permiso.delete()
+            return JsonResponse({"success": True, "message": "Permiso eliminado correctamente."})
+        else:
+            return JsonResponse({"success": False, "message": "El usuario no tiene este permiso."}, status=400)
+
+    return JsonResponse({"success": False, "message": "Método no permitido."}, status=405)
+
+@login_required
+def auditoria_usuarios_view(request):
+    return render(request, 'Blyss/Admin/Usuarios/Auditoria/index.html')

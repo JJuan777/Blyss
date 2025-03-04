@@ -130,15 +130,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# settings.py
+TIME_ZONE = 'America/Mexico_City'  # Ajusta según tu país
+USE_TZ = True  # Mantener True para manejar correctamente las zonas horarias
+
 
 USE_I18N = True
-
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
+
+LOGIN_URL = '/Blyss/login/'
 
 STATIC_URL = 'static/'
 
